@@ -146,6 +146,7 @@ class NaiveTopK(ContextStrategy):
                 position=i,
                 tokens=estimate_tokens(c.text),
                 source=c.source,
+                authority=c.authority,
             )
             for i, c in enumerate(selected_raw)
         ]
@@ -220,7 +221,15 @@ class HeadTailPriority(ContextStrategy):
                 )
                 continue
             selected.append(
-                Evidence(id=c.id, text=c.text, score=c.score, position=-1, tokens=t, source=c.source)
+                Evidence(
+                    id=c.id,
+                    text=c.text,
+                    score=c.score,
+                    position=-1,
+                    tokens=t,
+                    source=c.source,
+                    authority=c.authority,
+                )
             )
             used_tokens += t
 

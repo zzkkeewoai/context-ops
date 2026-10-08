@@ -1,24 +1,136 @@
-{"id": "doc_01", "text": "FastAPI 是一个现代、高性能的 Python Web 框架，基于 Starlette 与 Pydantic，原生支持异步（async/await）。"}
-{"id": "doc_02", "text": "Milvus 是开源向量数据库，支持 IVF_FLAT 与 HNSW 索引，常用于语义检索与 RAG 场景。"}
-{"id": "doc_03", "text": "Neo4j 是图数据库，使用 Cypher 查询语言，适合存储实体关系并执行多跳遍历。"}
-{"id": "doc_04", "text": "RRF（Reciprocal Rank Fusion）按排名融合多路检索结果，公式为 1/(k+rank)，k 通常取 60。"}
-{"id": "doc_05", "text": "Redis 是内存键值数据库，常用于缓存与会话存储，支持 TTL 过期和多种数据结构。"}
-{"id": "doc_06", "text": "FastAPI 会自动生成 OpenAPI/Swagger 接口文档，便于前后端联调与演示。"}
-{"id": "doc_07", "text": "语义缓存通过 embedding 余弦相似度判断两个问题是否语义等价，命中后可直接跳过检索与生成。"}
-{"id": "doc_08", "text": "Prometheus 是时序监控系统，通过拉取 /metrics 端点采集指标，常与 Grafana 配合做可视化。"}
-{"id": "doc_09", "text": "SSE（Server-Sent Events）是基于 HTTP 的服务器单向推送通道，常用于大模型流式输出。"}
-{"id": "doc_10", "text": "LangGraph 用状态机（StateGraph）编排多 Agent 流程，通过条件边强约束路由轨迹，避免死循环。"}
-{"id": "doc_11", "text": "向量检索把文本编码成稠密向量并用余弦相似度找语义相近内容，但它无法表达实体之间的结构关系。"}
-{"id": "doc_12", "text": "上下文工程关注给模型喂什么内容，包括证据选择、排序、token 预算分配与压缩策略。"}
-{"id": "doc_13", "text": "RAG 系统把外部知识检索结果作为上下文交给大模型，从而缓解知识过期与幻觉问题。"}
-{"id": "doc_14", "text": "Neo4j 图数据库支持两跳邻居查询，可用于回答依赖链与跨实体对比类问题。"}
-{"id": "doc_15", "text": "FastAPI 支持依赖注入与中间件，便于统一处理鉴权、限流与请求追踪。"}
-{"id": "doc_16", "text": "Milvus 的部署依赖 etcd 与 MinIO 组件。"}
-{"id": "doc_17", "text": "Milvus 集群需要配置对象存储。"}
-{"id": "doc_18", "text": "Milvus 常见问题排查手册。"}
-{"id": "doc_19", "text": "RRF 融合中的 k 值会影响长尾结果的权重分配。"}
-{"id": "doc_20", "text": "SSE 长连接需要服务端定期发送心跳包。"}
-{"id": "doc_21", "text": "上下文压缩会丢失细节，需保留来源引用。"}
-{"id": "doc_22", "text": "Neo4j 的索引会影响多跳查询性能。"}
-{"id": "doc_23", "text": "FastAPI 的中间件执行顺序与注册顺序相反。"}
-{"id": "doc_24", "text": "Milvus 的部署只需要 etcd，不依赖 MinIO 等对象存储组件。"}
+{"id": "doc_001", "text": "RAG 即检索增强生成，先从外部知识库召回相关文档，再把召回的证据作为上下文交给大模型生成答案。", "topic": "RAG 检索增强生成基础", "role": "gold", "authority": 0.9}
+{"id": "doc_002", "text": "RAG 的召回阶段常并行执行向量检索与关键词检索两路，再由融合模块合并两路结果后送入组装。", "topic": "RAG 检索增强生成基础", "role": "distractor", "authority": 0.6}
+{"id": "doc_003", "text": "RAG 的常见失败模式是召回证据不足、召回内容与问题无关、以及在长上下文中忽略关键证据三类。", "topic": "RAG 检索增强生成基础", "role": "distractor", "authority": 0.6}
+{"id": "doc_004", "text": "RAG 的召回只需要向量检索一路即可，关键词检索与融合模块并不是必需的。", "topic": "RAG 检索增强生成基础", "role": "conflict", "authority": 0.3}
+{"id": "doc_005", "text": "向量检索把文本编码成稠密向量，再用余弦相似度等度量计算查询向量与文档向量的距离，返回语义最相近的结果。", "topic": "向量检索原理", "role": "gold", "authority": 0.9}
+{"id": "doc_006", "text": "向量检索常用 HNSW、IVF 等近似最近邻索引加速，用少量召回损失换取毫秒级的查询延迟。", "topic": "向量检索原理", "role": "distractor", "authority": 0.6}
+{"id": "doc_007", "text": "向量检索的效果依赖嵌入模型质量与索引参数，语料更新后需要重建索引才能覆盖新增文档。", "topic": "向量检索原理", "role": "distractor", "authority": 0.6}
+{"id": "doc_008", "text": "语料更新后 ANN 索引会自动增量更新，无需重建，也不会遗漏新增文档。", "topic": "向量检索原理", "role": "conflict", "authority": 0.3}
+{"id": "doc_009", "text": "Milvus 是开源分布式向量数据库，用 HNSW、IVF 等索引管理海量向量，为语义检索与 RAG 提供近邻查询。", "topic": "向量数据库 Milvus", "role": "gold", "authority": 0.9}
+{"id": "doc_010", "text": "Milvus 生产集群需要独立部署查询节点、索引节点与协调组件，并按数据量规划分片与副本。", "topic": "向量数据库 Milvus", "role": "distractor", "authority": 0.6}
+{"id": "doc_011", "text": "Milvus 的查询性能受 nlist、nprobe 等索引参数影响，nprobe 越大召回越全，延迟也越高。", "topic": "向量数据库 Milvus", "role": "distractor", "authority": 0.6}
+{"id": "doc_012", "text": "Milvus 只支持 IVF 系列索引，无法使用 HNSW 图索引，近邻查询的精度因此受限。", "topic": "向量数据库 Milvus", "role": "conflict", "authority": 0.3}
+{"id": "doc_013", "text": "BM25 是关键词检索的经典排序函数，按词频与逆文档频率加权，并用文档长度归一化抑制长文档的分数虚高。", "topic": "混合检索 BM25", "role": "gold", "authority": 0.9}
+{"id": "doc_014", "text": "BM25 的两个可调参数 k1 与 b 分别控制词频饱和程度与长度归一化强度，工程上常取 1.2 和 0.75。", "topic": "混合检索 BM25", "role": "distractor", "authority": 0.6}
+{"id": "doc_015", "text": "BM25 对精确术语、型号与专有名词的匹配很稳，但同义词改写与口语化提问容易漏召。", "topic": "混合检索 BM25", "role": "distractor", "authority": 0.6}
+{"id": "doc_016", "text": "BM25 仅需调 k1 一个参数，b 参数无需设置，长度归一化默认关闭。", "topic": "混合检索 BM25", "role": "conflict", "authority": 0.3}
+{"id": "doc_017", "text": "RRF 即倒数排名融合，把多路检索结果按 1/(k+rank) 累加打分，其权重仅由名次决定，与各路分数的量纲无关。", "topic": "RRF 融合", "role": "gold", "authority": 0.9}
+{"id": "doc_018", "text": "RRF 中的 k 是平滑常数，取值越大越削弱头部排名优势，工程上常取 60。", "topic": "RRF 融合", "role": "distractor", "authority": 0.6}
+{"id": "doc_019", "text": "RRF 适合融合量纲不可比的召回源，但对只有一路召回质量极高的情况收益有限。", "topic": "RRF 融合", "role": "distractor", "authority": 0.6}
+{"id": "doc_020", "text": "RRF 的平滑常数仅需取 1，因为 60 压平候选之间的名次分差。", "topic": "RRF 融合", "role": "conflict", "authority": 0.3}
+{"id": "doc_021", "text": "Rerank 用交叉编码器对查询与候选文档逐对打分，按精排分数重新排序，把真正相关的证据顶到前面。", "topic": "Rerank 重排", "role": "gold", "authority": 0.9}
+{"id": "doc_022", "text": "Rerank 的耗时随候选数量增长，工程上通常先召回 50 至 100 条，再精排到前 5 条。", "topic": "Rerank 重排", "role": "distractor", "authority": 0.6}
+{"id": "doc_023", "text": "Rerank 一般放在召回之后、上下文组装之前，用来修正双塔模型因交互不足产生的排序偏差。", "topic": "Rerank 重排", "role": "distractor", "authority": 0.6}
+{"id": "doc_024", "text": "Rerank 只支持双塔向量打分，无需让查询与文档逐对交互。", "topic": "Rerank 重排", "role": "conflict", "authority": 0.3}
+{"id": "doc_025", "text": "Chunking 把长文档切成若干语义完整的片段再入库，片段粒度直接决定检索召回与上下文证据的质量。", "topic": "文档切分 Chunking", "role": "gold", "authority": 0.9}
+{"id": "doc_026", "text": "Chunking 常用 256 至 512 token 的片段长度，并保留 10%~20% 的重叠窗口以维持语义连贯。", "topic": "文档切分 Chunking", "role": "distractor", "authority": 0.6}
+{"id": "doc_027", "text": "按标题层级切分能保留章节语义，按固定长度切分容易切断表格与代码块的结构。", "topic": "文档切分 Chunking", "role": "distractor", "authority": 0.6}
+{"id": "doc_028", "text": "文本切分仅需按固定长度处理，表格与代码块无需特殊照顾。", "topic": "文档切分 Chunking", "role": "conflict", "authority": 0.3}
+{"id": "doc_029", "text": "Embedding 模型把文本映射成稠密向量，让语义相近的文本在向量空间中距离更近，是语义检索的基础。", "topic": "Embedding 模型", "role": "gold", "authority": 0.9}
+{"id": "doc_030", "text": "Embedding 模型的向量维度常见 768 与 1024，维度越高表达能力越强，显存与存储开销也越大。", "topic": "Embedding 模型", "role": "distractor", "authority": 0.6}
+{"id": "doc_031", "text": "通用 Embedding 模型在专业领域常需用对比学习微调，正负样本质量决定微调后的检索效果。", "topic": "Embedding 模型", "role": "distractor", "authority": 0.6}
+{"id": "doc_032", "text": "通用 Embedding 模型仅需直接调用，专业领域无需微调。", "topic": "Embedding 模型", "role": "conflict", "authority": 0.3}
+{"id": "doc_033", "text": "检索质量评估常用 Recall@k 与 MRR、NDCG 等排序指标，衡量标准答案是否被召回以及排在第几位。", "topic": "检索质量评估", "role": "gold", "authority": 0.9}
+{"id": "doc_034", "text": "检索评估需要人工标注查询与文档的相关性等级，标注口径不一致会让指标失去可比性。", "topic": "检索质量评估", "role": "distractor", "authority": 0.6}
+{"id": "doc_035", "text": "线上检索效果还要看点击率、首条采纳率与拒答率，离线指标好并不等于线上体验好。", "topic": "检索质量评估", "role": "distractor", "authority": 0.6}
+{"id": "doc_036", "text": "NDCG 仅需二元相关性标注，无需分级标注。", "topic": "检索质量评估", "role": "conflict", "authority": 0.3}
+{"id": "doc_037", "text": "检索优化通常从查询改写、召回多路化与重排三处入手，先解决召不到，再解决排不准。", "topic": "检索优化手段", "role": "gold", "authority": 0.9}
+{"id": "doc_038", "text": "查询改写包含同义扩展、指代消解与 HyDE 假设文档生成，用来缩小口语提问与文档用词的差距。", "topic": "检索优化手段", "role": "distractor", "authority": 0.6}
+{"id": "doc_039", "text": "扩大 top_k 与增加召回路数能提升命中率，代价是重排压力与上下文噪声同步上升。", "topic": "检索优化手段", "role": "distractor", "authority": 0.6}
+{"id": "doc_040", "text": "扩大 top_k 仅需调到 500，噪声与延迟不会增加。", "topic": "检索优化手段", "role": "conflict", "authority": 0.3}
+{"id": "doc_041", "text": "Function Calling 让模型输出结构化的工具名与参数，工具的实际执行由宿主程序完成，执行结果再回填给模型。", "topic": "Function Calling 工具调用", "role": "gold", "authority": 0.9}
+{"id": "doc_042", "text": "工具声明里的 description 与参数 schema 写得越明确，模型选错工具、漏填必填参数的概率就越低。", "topic": "Function Calling 工具调用", "role": "distractor", "authority": 0.6}
+{"id": "doc_043", "text": "模型可能编造不存在的工具名或把参数传成错误类型，宿主必须在执行前校验入参并回传结构化错误。", "topic": "Function Calling 工具调用", "role": "distractor", "authority": 0.6}
+{"id": "doc_044", "text": "Function Calling 由模型自身直接执行工具并返回结果，不需要宿主程序参与工具的执行与回填。", "topic": "Function Calling 工具调用", "role": "conflict", "authority": 0.3}
+{"id": "doc_045", "text": "ReAct 让模型交替产出推理与行动，再根据工具返回的观察修正下一步推理，直到得出最终答案。", "topic": "ReAct Agent 框架", "role": "gold", "authority": 0.9}
+{"id": "doc_046", "text": "ReAct 提示词必须约定 Action 与 Observation 的固定标签，否则模型输出无法被解析成工具调用。", "topic": "ReAct Agent 框架", "role": "distractor", "authority": 0.6}
+{"id": "doc_047", "text": "ReAct 不做全局规划，步数一多就容易偏离目标，复杂任务更适合先规划再执行或改用状态机编排。", "topic": "ReAct Agent 框架", "role": "distractor", "authority": 0.6}
+{"id": "doc_048", "text": "ReAct 只在开始时推理一次，后续每一步都直接调用工具，不需要再产生推理文本。", "topic": "ReAct Agent 框架", "role": "conflict", "authority": 0.3}
+{"id": "doc_049", "text": "LangGraph 用有向图与共享状态编排 Agent 流程，节点是计算步骤，边决定状态如何流转与何时结束。", "topic": "状态机编排（LangGraph）", "role": "gold", "authority": 0.9}
+{"id": "doc_050", "text": "LangGraph 的 checkpointer 把每步状态持久化，因此支持中断、重放以及人工审批后从断点恢复执行。", "topic": "状态机编排（LangGraph）", "role": "distractor", "authority": 0.6}
+{"id": "doc_051", "text": "条件边让分支走向由代码而不是模型决定，适合把不可控的循环收敛成有限的状态转移。", "topic": "状态机编排（LangGraph）", "role": "distractor", "authority": 0.6}
+{"id": "doc_052", "text": "LangGraph 的节点之间可以任意跳转，执行顺序完全由模型自由决定，不需要预先定义边和结束条件。", "topic": "状态机编排（LangGraph）", "role": "conflict", "authority": 0.3}
+{"id": "doc_053", "text": "工具网关是所有工具调用的统一入口，集中完成鉴权、参数校验、限流、超时控制与调用审计。", "topic": "工具网关设计", "role": "gold", "authority": 0.9}
+{"id": "doc_054", "text": "网关为每个工具登记名称、参数 schema 与风险等级，Agent 只能调用注册表里声明过的工具。", "topic": "工具网关设计", "role": "distractor", "authority": 0.6}
+{"id": "doc_055", "text": "把工具收敛到网关后可以统一埋点，按工具维度统计调用量、失败率与延迟，便于快速定位问题。", "topic": "工具网关设计", "role": "distractor", "authority": 0.6}
+{"id": "doc_056", "text": "工具网关只做请求转发，鉴权与限流不由网关负责，必须由每个工具自己实现。", "topic": "工具网关设计", "role": "conflict", "authority": 0.3}
+{"id": "doc_057", "text": "幂等指同一个请求执行多次与执行一次的效果相同，系统靠唯一的幂等键识别并拦截重复请求。", "topic": "幂等性设计", "role": "gold", "authority": 0.9}
+{"id": "doc_058", "text": "幂等键通常由任务 ID、工具名与参数摘要拼接后哈希得到，并设置合理的过期时间以便回收。", "topic": "幂等性设计", "role": "distractor", "authority": 0.6}
+{"id": "doc_059", "text": "写类接口必须幂等，否则下游超时重试会造成重复扣款、重复发货这类不可回滚的事故。", "topic": "幂等性设计", "role": "distractor", "authority": 0.6}
+{"id": "doc_060", "text": "幂等键只由工具名与参数摘要拼成即可，不需要带任务 ID。", "topic": "幂等性设计", "role": "conflict", "authority": 0.3}
+{"id": "doc_061", "text": "HITL 在 Agent 执行高危操作前把控制权交回人工，由人确认或修改之后才继续执行。", "topic": "权限模型与高危审批 HITL", "role": "gold", "authority": 0.9}
+{"id": "doc_062", "text": "工具按风险分为只读、写入与资金三类，风险等级决定是否需要人工审批以及审批的粒度。", "topic": "权限模型与高危审批 HITL", "role": "distractor", "authority": 0.6}
+{"id": "doc_063", "text": "审批超时要有兜底：无人响应时按拒绝处理，并把待审批状态与上下文快照一起持久化。", "topic": "权限模型与高危审批 HITL", "role": "distractor", "authority": 0.6}
+{"id": "doc_064", "text": "高危操作不需要人工确认，只要模型声明操作安全就可以直接执行。", "topic": "权限模型与高危审批 HITL", "role": "conflict", "authority": 0.3}
+{"id": "doc_065", "text": "失败归因把 Agent 的失败结果拆解到具体环节，判定问题出在检索、上下文组装、模型推理还是工具执行。", "topic": "Agent 失败归因", "role": "gold", "authority": 0.9}
+{"id": "doc_066", "text": "归因依赖每步可回放的轨迹：检索候选、裁剪原因、最终上下文、模型输出与工具返回都要落盘。", "topic": "Agent 失败归因", "role": "distractor", "authority": 0.6}
+{"id": "doc_067", "text": "把失败先粗分成模型能力与上下文质量两类，才能决定是换模型还是改检索与组装策略。", "topic": "Agent 失败归因", "role": "distractor", "authority": 0.6}
+{"id": "doc_068", "text": "失败归因只需要看最终答案对不对，不需要拆解中间步骤，也无法定位到具体环节。", "topic": "Agent 失败归因", "role": "conflict", "authority": 0.3}
+{"id": "doc_069", "text": "多 Agent 协作把任务拆给多个专职 Agent，再通过共享状态与消息传递汇总各自的执行结果。", "topic": "多 Agent 协作", "role": "gold", "authority": 0.9}
+{"id": "doc_070", "text": "常见拓扑有主管-工人、流水线与对等协商三种，选哪种取决于子任务能否并行、结果是否互相依赖。", "topic": "多 Agent 协作", "role": "distractor", "authority": 0.6}
+{"id": "doc_071", "text": "Agent 之间只传结构化结论而不传完整对话，否则共享上下文会被彼此的中间过程迅速撑爆。", "topic": "多 Agent 协作", "role": "distractor", "authority": 0.6}
+{"id": "doc_072", "text": "多 Agent 之间必须传递完整对话历史，不能只传结构化结论，否则信息一定会丢失。", "topic": "多 Agent 协作", "role": "conflict", "authority": 0.3}
+{"id": "doc_073", "text": "Token 预算给 system、历史、证据与输出各自分配上限，超出时按优先级裁剪而不是无限截断。", "topic": "Token 预算与成本控制", "role": "gold", "authority": 0.9}
+{"id": "doc_074", "text": "成本主要由输入 token 决定，把全量文档塞进上下文会让单次调用成本随文档数量线性上升。", "topic": "Token 预算与成本控制", "role": "distractor", "authority": 0.6}
+{"id": "doc_075", "text": "常见省法有语义缓存、历史摘要压缩与小模型分流，但压缩会丢细节，需要保留来源引用。", "topic": "Token 预算与成本控制", "role": "distractor", "authority": 0.6}
+{"id": "doc_076", "text": "Token 预算只需要限制输出长度，输入上下文不需要设上限，塞得越多回答越准。", "topic": "Token 预算与成本控制", "role": "conflict", "authority": 0.3}
+{"id": "doc_077", "text": "Agent 死循环指它反复调用同一工具或重复同一步推理而无法收敛，需要用步数与重复度约束来打断。", "topic": "死循环检测与约束", "role": "gold", "authority": 0.9}
+{"id": "doc_078", "text": "常见约束有最大步数、单工具连续调用次数上限与总耗时超时，触发后强制降级或转人工处理。", "topic": "死循环检测与约束", "role": "distractor", "authority": 0.6}
+{"id": "doc_079", "text": "只限步数并不够，模型可能把同一次调用换个参数绕过计数，要同时对参数指纹与结果做去重判断。", "topic": "死循环检测与约束", "role": "distractor", "authority": 0.6}
+{"id": "doc_080", "text": "死循环只需要限制最大步数即可，重复调用同一工具不需要任何检测，模型自己会收敛。", "topic": "死循环检测与约束", "role": "conflict", "authority": 0.3}
+{"id": "doc_081", "text": "Prompt 工程是用结构化指令、示例与约束引导大模型产出预期结果的方法，核心是压低任务描述和模型先验之间的歧义。", "topic": "Prompt 工程", "role": "gold", "authority": 0.9}
+{"id": "doc_082", "text": "Few-shot 提示通过少量输入输出示例锚定任务的格式与判定标准，示例条数通常取 3 到 8 条。", "topic": "Prompt 工程", "role": "distractor", "authority": 0.6}
+{"id": "doc_083", "text": "思维链提示要求模型先输出推理步骤再给出结论，会显著增加输出 token 与延迟成本。", "topic": "Prompt 工程", "role": "distractor", "authority": 0.6}
+{"id": "doc_084", "text": "思维链提示仅改变输出顺序，不需要额外的推理 token，因此不会增加延迟成本。", "topic": "Prompt 工程", "role": "conflict", "authority": 0.3}
+{"id": "doc_085", "text": "上下文工程关注在有限 token 预算内给模型喂什么内容，包括证据选择、排序、压缩与预算分配。", "topic": "上下文工程", "role": "gold", "authority": 0.9}
+{"id": "doc_086", "text": "上下文组装通常按相关性分数排序后截断，并保留来源引用，以便答案可以逐条溯源。", "topic": "上下文工程", "role": "distractor", "authority": 0.6}
+{"id": "doc_087", "text": "上下文越长信噪比越低，无关证据会稀释关键信息，并推高输入侧的 token 成本。", "topic": "上下文工程", "role": "distractor", "authority": 0.6}
+{"id": "doc_088", "text": "上下文工程只需要把全部检索结果都塞进提示词，不需要做预算分配与裁剪。", "topic": "上下文工程", "role": "conflict", "authority": 0.3}
+{"id": "doc_089", "text": "Lost in the Middle 是位置偏差现象：模型对上下文中段证据的利用率最低，开头与结尾的证据更易被采信。", "topic": "Lost in the Middle 位置偏差", "role": "gold", "authority": 0.9}
+{"id": "doc_090", "text": "应对位置偏差的常见手段是把最关键的证据重排到上下文的首尾两端。", "topic": "Lost in the Middle 位置偏差", "role": "distractor", "authority": 0.6}
+{"id": "doc_091", "text": "位置偏差随输入长度增长而加剧，因此无限堆叠证据反而会拉低整体准确率。", "topic": "Lost in the Middle 位置偏差", "role": "distractor", "authority": 0.6}
+{"id": "doc_092", "text": "模型对上下文各个位置的注意力是均匀的，不需要重排证据顺序。", "topic": "Lost in the Middle 位置偏差", "role": "conflict", "authority": 0.3}
+{"id": "doc_093", "text": "语义缓存把历史问题编码成向量，当新问题与缓存项的相似度超过阈值时复用旧答案，跳过检索与生成。", "topic": "语义缓存", "role": "gold", "authority": 0.9}
+{"id": "doc_094", "text": "相似度阈值决定缓存命中率与误命中风险，阈值偏低会把不同意图的问题误判为语义等价。", "topic": "语义缓存", "role": "distractor", "authority": 0.6}
+{"id": "doc_095", "text": "语义缓存只对高频重复的问法有效，遇到个性化或强时效问题容易返回过期答案。", "topic": "语义缓存", "role": "distractor", "authority": 0.6}
+{"id": "doc_096", "text": "语义缓存仅比对问题的字面字符串，不需要向量相似度计算就能判断两个问题是否等价。", "topic": "语义缓存", "role": "conflict", "authority": 0.3}
+{"id": "doc_097", "text": "SSE 是基于 HTTP 的服务器单向推送协议，服务端持续分块下发数据，常用于大模型逐字流式输出。", "topic": "SSE 流式输出", "role": "gold", "authority": 0.9}
+{"id": "doc_098", "text": "SSE 长连接需要服务端定期发送心跳注释行，否则中间代理会在空闲超时后断开连接。", "topic": "SSE 流式输出", "role": "distractor", "authority": 0.6}
+{"id": "doc_099", "text": "SSE 只支持服务端到客户端的单向推送，需要双向通信时应改用 WebSocket。", "topic": "SSE 流式输出", "role": "distractor", "authority": 0.6}
+{"id": "doc_100", "text": "SSE 本身就是双向通信通道，不需要改用 WebSocket 就能实现客户端到服务端的消息回传。", "topic": "SSE 流式输出", "role": "conflict", "authority": 0.3}
+{"id": "doc_101", "text": "Ragas 是面向 RAG 的评测框架，用忠实度、答案相关性与上下文召回等指标量化检索和生成的质量。", "topic": "RAG 评测框架 Ragas", "role": "gold", "authority": 0.9}
+{"id": "doc_102", "text": "Ragas 通过调用大模型把答案拆成可验证的陈述句，再逐条核对能否由检索上下文推出，以此算忠实度。", "topic": "RAG 评测框架 Ragas", "role": "distractor", "authority": 0.6}
+{"id": "doc_103", "text": "Ragas 的指标依赖大模型裁判，评测本身要消耗 token 且分数存在波动，需要用人工标注做校准。", "topic": "RAG 评测框架 Ragas", "role": "distractor", "authority": 0.6}
+{"id": "doc_104", "text": "Ragas 的指标全部由规则计算，不需要任何大模型作为裁判，因此评测结果不存在波动。", "topic": "RAG 评测框架 Ragas", "role": "conflict", "authority": 0.3}
+{"id": "doc_105", "text": "QLoRA 先把基座模型量化成 4-bit，再在其上训练低秩适配器，从而在单张消费级显卡上微调大模型。", "topic": "QLoRA 微调", "role": "gold", "authority": 0.9}
+{"id": "doc_106", "text": "QLoRA 常用 NF4 量化类型与双重量化，并把优化器状态分页到 CPU 内存以压低显存占用。", "topic": "QLoRA 微调", "role": "distractor", "authority": 0.6}
+{"id": "doc_107", "text": "QLoRA 的训练吞吐低于全参数微调，量化误差会让它在细粒度任务上略逊于 16-bit 的 LoRA。", "topic": "QLoRA 微调", "role": "distractor", "authority": 0.6}
+{"id": "doc_108", "text": "QLoRA 的显存占用与全参数微调基本相当，4-bit 量化并不能降低训练所需显存。", "topic": "QLoRA 微调", "role": "conflict", "authority": 0.3}
+{"id": "doc_109", "text": "GGUF 是 llama.cpp 推出的模型文件格式，把权重与元数据打包成单文件，支持多种量化等级用于本地推理。", "topic": "GGUF 量化部署", "role": "gold", "authority": 0.9}
+{"id": "doc_110", "text": "GGUF 模型可以直接用 llama.cpp 或 Ollama 加载，并支持按层卸载到 GPU 来加速推理。", "topic": "GGUF 量化部署", "role": "distractor", "authority": 0.6}
+{"id": "doc_111", "text": "量化等级越低文件越小、显存占用越少，但 Q4 以下的精度损失会在长文本任务里明显暴露。", "topic": "GGUF 量化部署", "role": "distractor", "authority": 0.6}
+{"id": "doc_112", "text": "GGUF 只有 Q8 一种量化等级，不需要在体积与精度之间做取舍。", "topic": "GGUF 量化部署", "role": "conflict", "authority": 0.3}
+{"id": "doc_113", "text": "可观测性由指标、日志与链路追踪三根支柱构成，分别回答系统是否异常、为何异常以及异常在哪一跳。", "topic": "可观测性三支柱", "role": "gold", "authority": 0.9}
+{"id": "doc_114", "text": "指标用 Prometheus 采集时序数据，日志用 ELK 聚合检索，追踪靠 OpenTelemetry 传播上下文。", "topic": "可观测性三支柱", "role": "distractor", "authority": 0.6}
+{"id": "doc_115", "text": "三支柱各自埋点会带来存储成本与采样偏差，通常用尾部采样保留慢请求与错误链路。", "topic": "可观测性三支柱", "role": "distractor", "authority": 0.6}
+{"id": "doc_116", "text": "可观测性只需要指标和日志两根支柱，链路追踪并非必需组件。", "topic": "可观测性三支柱", "role": "conflict", "authority": 0.3}
+{"id": "doc_117", "text": "幻觉指模型生成看似合理却与事实或给定证据不符的内容，抑制它需要让回答有据可依并能追溯。", "topic": "大模型幻觉抑制", "role": "gold", "authority": 0.9}
+{"id": "doc_118", "text": "常见抑制手段包括检索增强、要求模型标注引用来源，以及在证据不足时显式拒答。", "topic": "大模型幻觉抑制", "role": "distractor", "authority": 0.6}
+{"id": "doc_119", "text": "降低温度或加长提示词只能缓解而无法根除幻觉，模型对自身输出的置信度往往并不可靠。", "topic": "大模型幻觉抑制", "role": "distractor", "authority": 0.6}
+{"id": "doc_120", "text": "只要把温度调到 0 就能彻底消除幻觉，不需要检索或引用机制。", "topic": "大模型幻觉抑制", "role": "conflict", "authority": 0.3}
+{"id": "doc_121", "text": "多轮对话要把历史消息与检索证据一起放进同一次请求，两者共享同一份 token 预算。", "topic": "多轮对话上下文管理", "role": "gold", "authority": 0.9}
+{"id": "doc_122", "text": "历史消息过多时应做摘要或滑窗截断，否则会挤占本该留给证据的预算。", "topic": "多轮对话上下文管理", "role": "distractor", "authority": 0.6}
+{"id": "doc_123", "text": "只保留最近几轮容易丢掉早期约定的关键约束，需要把会话状态单独记下来而不是靠历史原文。", "topic": "多轮对话上下文管理", "role": "distractor", "authority": 0.6}
+{"id": "doc_124", "text": "多轮对话的历史消息不占用 token 预算，只有检索证据才需要限制长度。", "topic": "多轮对话上下文管理", "role": "conflict", "authority": 0.3}
+{"id": "doc_125", "text": "上下文压缩用摘要或裁剪减少 token 消耗，但压缩是有损的，必须保留来源引用以便回溯。", "topic": "长上下文压缩", "role": "gold", "authority": 0.9}
+{"id": "doc_126", "text": "压缩比过高会让模型看不到关键数字与限定条件，答案看上去合理但已经失真。", "topic": "长上下文压缩", "role": "distractor", "authority": 0.6}
+{"id": "doc_127", "text": "按位置裁剪比按相关性裁剪更危险，因为关键证据可能正好落在被切掉的中段。", "topic": "长上下文压缩", "role": "distractor", "authority": 0.6}
+{"id": "doc_128", "text": "上下文压缩是无损的，压缩之后模型获得的信息与读原文完全一致。", "topic": "长上下文压缩", "role": "conflict", "authority": 0.3}
+{"id": "doc_129", "text": "跨文档对比查询要同时召回多个对象的证据，缺任何一方都会让结论变得片面。", "topic": "跨文档对比查询", "role": "gold", "authority": 0.9}
+{"id": "doc_130", "text": "对比类问题如果只召回到一方，模型往往会用常识补齐另一方，产出看似合理的错误答案。", "topic": "跨文档对比查询", "role": "distractor", "authority": 0.6}
+{"id": "doc_131", "text": "对比查询对上下文组装更敏感，因为成对的证据最好相邻出现，隔太远容易只被用上一条。", "topic": "跨文档对比查询", "role": "distractor", "authority": 0.6}
+{"id": "doc_132", "text": "跨文档对比只需要召回其中一方，模型可以自行推断出另一方的特征。", "topic": "跨文档对比查询", "role": "conflict", "authority": 0.3}
+{"id": "doc_133", "text": "知识库更新后同一个问题可能存在新旧两份文档，同时被检索到就会形成证据冲突。", "topic": "知识时效性与版本冲突", "role": "gold", "authority": 0.9}
+{"id": "doc_134", "text": "缓解做法是给文档打生效时间，检索时按时间过滤，或者对更新的文档给更高权重。", "topic": "知识时效性与版本冲突", "role": "distractor", "authority": 0.6}
+{"id": "doc_135", "text": "文档没有时间字段时，同一属性的两种说法分不出谁更新，只能拒答或明确提示存在分歧。", "topic": "知识时效性与版本冲突", "role": "distractor", "authority": 0.6}
+{"id": "doc_136", "text": "知识库更新时会自动清除旧文档，因此不会出现新旧两个版本同时被检索到的情况。", "topic": "知识时效性与版本冲突", "role": "conflict", "authority": 0.3}

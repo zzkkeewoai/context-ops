@@ -203,21 +203,37 @@ def detect_conflicts(
 class ContextValidator:
     """上下文校验器：判断证据是否足以作答，并决定下一步动作。"""
 
-    # 相关性下限：低于它视为"与问题无关"（经验起点，实际应扫阈值标定）
-    MIN_RELEVANCE = 0.6
+    # 相关性下限：低于它视为"与问题无关"
+    # 【这个值是扫出来的，不是拍的】calibrate_thresholds.py 扫了
+    # MIN_RELEVANCE × MIN_TOPIC_OVERLAP 共 30 组组合，结论有三条：
+    #   ① 准确率几乎不随这两个阈值变化（0.657~0.760）—— 它们**不是瓶颈**；
+    #   ② 过拒率与漏检冲突率**此消彼长**：overlap 从 6 提到 12，
+    #      过拒率 0.103 → 0.007（好转），但漏检冲突率 0.059 → 0.559（恶化）；
+    #   ③ **没有任何一组能同时压住两类错误**。
+    #   → 这说明问题在**判据本身**，不在参数：拿"否定词表 + 字面重叠"去判断
+    #     "两条文档是否真的矛盾"，区分不了"真矛盾"和"两条都正常、只是用词不同"。
+    #     继续调参只是在两个错误之间来回挪，下一步该换判据（embedding / NLI）。
+    # 当前取值是折中：漏拒率 0.029、漏检冲突率 0.059 都压得很低，过拒率 0.125 可接受。
+    MIN_RELEVANCE = 0.40
     # 两条证据的中文实义字交集达到此数，视为"在讨论同一主题"
     MIN_TOPIC_OVERLAP = 6
     # 比较相关性时的容差：避免浮点误差引发无意义的 rebuild
     EPS = 0.05
+    # 权威度差距达到这个值，才认为"分得出谁更可信"
+    MIN_AUTHORITY_GAP = 0.2
 
     def __init__(
         self,
         min_relevance: Optional[float] = None,
         min_topic_overlap: Optional[int] = None,
+        min_authority_gap: Optional[float] = None,
     ):
         self.min_relevance = self.MIN_RELEVANCE if min_relevance is None else min_relevance
         self.min_topic_overlap = (
             self.MIN_TOPIC_OVERLAP if min_topic_overlap is None else min_topic_overlap
+        )
+        self.min_authority_gap = (
+            self.MIN_AUTHORITY_GAP if min_authority_gap is None else min_authority_gap
         )
 
     # ---------------- 对外主入口 ----------------
@@ -284,14 +300,36 @@ class ContextValidator:
         conflicts = detect_conflicts(query, selected, self.min_topic_overlap)
         checks["conflict_pairs"] = float(len(conflicts))
         if conflicts:
+            # 【v3 修正】检出冲突不再一律拒答 —— 先尝试用来源权威度裁决
+            #
+            # 为什么改（这是数据集扩大后才暴露出来的）：
+            #   旧行为是"检出冲突 → refuse"。在小数据集（15 条、只有 1 对矛盾文档）上
+            #   看不出问题；扩到 204 条后，几乎每个主题都有一对矛盾文档，
+            #   过拒率直接飙到 59% —— 一半以上的问题答不了，产品上不可用。
+            #   "数据源里有矛盾"是数据质量问题，让问答系统用拒答来兜底是过度反应。
+            #   更成熟的做法是：按来源可信度选出该采信的证据，把另一条**剔除**，
+            #   然后正常作答；只有真的分不出高下时才拒答。
+            resolvable, drop_ids, why = self._resolve_conflicts(selected, conflicts)
+            if resolvable:
+                checks["resolved_conflicts"] = 1.0
+                return ValidatorResult(
+                    status="pass",
+                    checks=checks,
+                    action=None,
+                    dropped_evidence=drop_ids,
+                    detail=(
+                        f"检出 {len(conflicts)} 处证据冲突，已按来源权威度裁决并剔除低权威证据："
+                        f"{why}"
+                    ),
+                )
             return ValidatorResult(
                 status="fail",
                 checks=checks,
                 action="refuse",
                 detail=(
-                    "证据之间存在冲突："
+                    "证据之间存在冲突且**无法裁决**："
                     + "；".join(c["detail"] for c in conflicts)
-                    + "。无法可靠裁决时应拒答，而不是选择性采信其中一条"
+                    + f"。{why} —— 此时拒答才是对的，不能给一个自己都不确定的结论"
                 ),
             )
 
@@ -303,3 +341,52 @@ class ContextValidator:
             action=None,
             detail="证据充分且无冲突，放行生成",
         )
+
+    # ---------------- 冲突裁决 ----------------
+    def _resolve_conflicts(
+        self, selected: Sequence[Evidence], conflicts: List[Dict[str, str]]
+    ):
+        """用来源权威度裁决冲突，返回 (是否可裁决, 要剔除的证据 id, 说明)。
+
+        裁决规则（刻意保守）：
+            要求**每一对**冲突双方的权威度差距都达到 min_authority_gap 才裁决；
+            任何一对分不出高下 → 整体判"无法裁决" → 拒答。
+        为什么这么保守：
+            只要有一对分不出，最终答案就可能建立在错误证据上。
+            宁可拒答，也不要给一个自己都不确定的结论。
+
+        裁决动作是「把权威度低的一方剔除上下文」，而不是「内部选一个但两条都留着」：
+            留着等于把"该信谁"这个判断推给生成模型 ——
+            而模型同时看到两条互相矛盾的说法时，恰恰是最容易被带偏的时候。
+            校验器既然已经分出了高下，就该把噪声清掉。
+        """
+        by_id = {e.id: e for e in selected}
+        drop: List[str] = []
+        notes: List[str] = []
+
+        for c in conflicts:
+            a = by_id.get(c["negative"])
+            b = by_id.get(c["positive"])
+            if a is None or b is None:
+                continue
+            gap = abs(a.authority - b.authority)
+            if gap < self.min_authority_gap:
+                return (
+                    False,
+                    [],
+                    (
+                        f"{a.id}（权威 {a.authority}）与 {b.id}（权威 {b.authority}）"
+                        f"权威度差距仅 {round(gap, 2)}，低于阈值 {self.min_authority_gap}，"
+                        f"分不出谁更可信"
+                    ),
+                )
+            loser, winner = (a, b) if a.authority < b.authority else (b, a)
+            drop.append(loser.id)
+            notes.append(
+                f"剔除 {loser.id}（权威 {loser.authority}）、"
+                f"采信 {winner.id}（权威 {winner.authority}）"
+            )
+
+        if not drop:
+            return False, [], "冲突双方不在入选证据中，无法裁决"
+        return True, drop, "；".join(notes)

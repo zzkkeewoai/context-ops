@@ -88,6 +88,7 @@ class InMemoryRetriever:
                 text=d["text"],
                 score=self._score(query, d["text"]),
                 source="keyword",
+                authority=d.get("authority", 0.5),
             )
             for d in self.docs
         ]
@@ -271,6 +272,9 @@ class Pipeline:
                 rebuild_count += 1
                 build = self._rebuild_context(query, candidates, history)
                 verdict = self.validator.validate(query, build.selected, candidates)
+            # 裁决要求剔除的证据：真的把它们移出上下文，再交给生成
+            if verdict.dropped_evidence:
+                build = self._drop_evidence(build, verdict.dropped_evidence)
             build.validator = verdict
 
         # ③ 生成（拒答时根本不进入生成器 —— 这是职责分离的直接体现）
@@ -350,6 +354,7 @@ class Pipeline:
                         position=-1,
                         tokens=estimate_tokens(c.text),
                         source=c.source,
+                        authority=c.authority,
                     )
                 )
 
@@ -400,6 +405,63 @@ class Pipeline:
             selected=selected,
             dropped=dropped,
             budget=budget,
+        )
+
+    # ---------------- 按裁决结果剔除证据 ----------------
+    def _drop_evidence(self, build: BuildResult, drop_ids: List[str]) -> BuildResult:
+        """把校验器裁决出的低权威证据**真正移出上下文**。
+
+        为什么必须真的剔除，而不是只在快照里记一笔：
+            只标记等于把"该信谁"这个判断推给生成模型 ——
+            而模型同时看到两条互相矛盾的说法时，恰恰是最容易被带偏的时候。
+            校验器既然已经用权威度分出了高下，就该把噪声清掉。
+
+        被剔除的证据以 VALIDATOR_REJECT 记进 dropped ——
+        Schema 里早就留了这个原因枚举，归因器能直接统计"有多少条是被裁决掉的"。
+        """
+        drop_set = set(drop_ids)
+        by_id = {e.id: e for e in build.selected}
+        keep = [e for e in build.selected if e.id not in drop_set]
+
+        # 重新编号：position 是分析 Lost in the Middle 的依据，剔除后必须重排，
+        # 否则位置字段和实际顺序脱节，后续的位置分析全部失真
+        keep = [e.model_copy(update={"position": i}) for i, e in enumerate(keep)]
+
+        newly_dropped = [
+            Dropped(id=i, score=by_id[i].score, reason=DropReason.VALIDATOR_REJECT)
+            for i in drop_ids
+            if i in by_id
+        ]
+
+        # 重建 messages：证据变了，渲染出来的编号必须跟着变，
+        # 否则答案里的 [3] 会指向一条已经不在上下文里的证据
+        messages = list(build.messages)
+        if messages and messages[-1].get("role") == "user":
+            messages[-1] = {
+                "role": "user",
+                "content": (
+                    "请仅根据下面提供的资料回答问题，并在答案中标注引用的编号（如 [1]）。"
+                    "如果资料不足以回答，请明确说明不足。\n\n"
+                    f"资料：\n{render_evidence(keep)}"
+                ),
+            }
+
+        tokens = sum(e.tokens for e in keep)
+        budget = Budget(
+            system=build.budget.system,
+            history=build.budget.history,
+            evidence=tokens,
+            used=build.budget.system + build.budget.history + tokens,
+            limit=build.budget.limit,
+        )
+
+        return BuildResult(
+            strategy_version=f"{self.strategy.version}+resolved",
+            messages=messages,
+            selected=keep,
+            dropped=list(build.dropped) + newly_dropped,
+            budget=budget,
+            validator=build.validator,
         )
 
     # ---------------- 引用检测 ----------------

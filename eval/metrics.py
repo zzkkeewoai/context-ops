@@ -21,6 +21,7 @@ from typing import Dict, List
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from schemas import ContextSnapshot  # noqa: E402
+from attribution import conflict_detected  # noqa: E402
 
 
 # ============================================================
@@ -59,17 +60,28 @@ def key_evidence_selected(snapshot: ContextSnapshot, gold_evidence: List[str]) -
 # ============================================================
 # 生成层
 # ============================================================
-def answer_correct(snapshot: ContextSnapshot, gold_evidence: List[str]) -> bool:
+def answer_correct(snapshot: ContextSnapshot, gold_evidence: List[str], category: str = "") -> bool:
     """答案是否正确。
 
     判定方式（简化版）：答案引用的证据命中目标证据即算正确。
     真实场景应换成：答案文本与标准答案的语义比对，或 LLM-as-judge。
+
+    gold 为空的两种情况**不能用同一个标准判**：
+        · conflict   → 期望"检出冲突"（数据源有矛盾，系统该发现并按可信度裁决，
+                        而不是因为自己知识库自相矛盾就摆烂不答）
+        · out_of_kb  → 期望"拒答"
     """
-    if not gold_evidence:
-        # 库外问题：正确答案是"拒答"
-        return snapshot.answer.refused
-    cited = set(snapshot.answer.cited_evidence)
-    return bool(cited & set(gold_evidence))
+    if gold_evidence:
+        cited = set(snapshot.answer.cited_evidence)
+        return bool(cited & set(gold_evidence))
+
+    if category == "conflict":
+        validator_result = snapshot.context.validator
+        if validator_result is None:
+            return False
+        return validator_result.checks.get("conflict_pairs", 0.0) > 0
+
+    return snapshot.answer.refused
 
 
 # ============================================================
@@ -96,24 +108,35 @@ def summarize(snapshots: List[ContextSnapshot], cases: List[Dict]) -> Dict:
     tokens_in_total = 0
     refusals = 0
 
-    # 拒答相关的两个错误率：分母分别是"该答的条数"和"该拒的条数"，
-    # 而不是总条数 —— 两者基数不同、代价反向，合成一个率就失去意义了。
-    should_answer = 0    # gold 非空 = 本应回答
-    should_refuse = 0    # gold 为空 = 本应拒答（库外 / 证据冲突）
+    # 拒答相关的错误率。
+    # 【注意】三类用例各用各的分母 —— 用一个总数做分母是错的：
+    #   · 有 gold         → 该回答，怕的是"过拒"（该答却拒 = 可用性损失）
+    #   · out_of_kb       → 该拒答，怕的是"漏拒"（该拒却答 = 幻觉风险）
+    #   · conflict        → 该【检出冲突】并按可信度裁决，既不是"该答"也不是"该拒"
+    #     （数据源里有矛盾是数据质量问题，不是"知识库没有"，不该用拒答来兜底）
+    should_answer = 0    # 该回答的条数
+    should_refuse = 0    # 该拒答的条数
+    should_detect = 0    # 该检出冲突的条数
     over_refusal = 0     # 该答却拒了
     missed_refusal = 0   # 该拒却答了
+    missed_conflict = 0  # 有矛盾却没检出
 
     for snap, case in zip(snapshots, cases):
         gold = case.get("gold_evidence", [])
+        category = case.get("category", "")
+
         hits += 1 if retrieval_hit(snap, gold) else 0
         selected_hits += 1 if key_evidence_selected(snap, gold) else 0
-        corrects += 1 if answer_correct(snap, gold) else 0
+        corrects += 1 if answer_correct(snap, gold, category) else 0
         utilizations.append(context_utilization(snap))
         latencies.append(snap.total_latency_ms)
         tokens_in_total += snap.generation.tokens_in
         refusals += 1 if snap.answer.refused else 0
 
-        if gold:
+        if category == "conflict":
+            should_detect += 1
+            missed_conflict += 1 if not conflict_detected(snap) else 0
+        elif gold:
             should_answer += 1
             over_refusal += 1 if snap.answer.refused else 0
         else:
@@ -129,9 +152,10 @@ def summarize(snapshots: List[ContextSnapshot], cases: List[Dict]) -> Dict:
         # 生成层
         "accuracy": round(corrects / n, 3),
         "refusal_rate": round(refusals / n, 3),
-        # 生成层 · 拒答质量（方向相反的两类错误，必须分开看）
+        # 生成层 · 错误方向相反的几类必须分开看
         "over_refusal_rate": round(over_refusal / should_answer, 3) if should_answer else 0.0,
         "missed_refusal_rate": round(missed_refusal / should_refuse, 3) if should_refuse else 0.0,
+        "missed_conflict_rate": round(missed_conflict / should_detect, 3) if should_detect else 0.0,
         # 系统层
         "p95_latency_ms": percentile(latencies, 0.95),
         "avg_total_latency_ms": round(statistics.mean(latencies), 2),

@@ -1,0 +1,172 @@
+[
+  {
+    "topic": "Prompt 工程",
+    "docs": [
+      {"role": "gold", "text": "Prompt 工程是用结构化指令、示例与约束引导大模型产出预期结果的方法，核心是压低任务描述和模型先验之间的歧义。"},
+      {"role": "distractor", "text": "Few-shot 提示通过少量输入输出示例锚定任务的格式与判定标准，示例条数通常取 3 到 8 条。"},
+      {"role": "distractor", "text": "思维链提示要求模型先输出推理步骤再给出结论，会显著增加输出 token 与延迟成本。"},
+      {"role": "conflict", "text": "思维链提示仅改变输出顺序，不需要额外的推理 token，因此不会增加延迟成本。"}
+    ],
+    "queries": [
+      {"q": "Prompt 工程究竟在解决什么问题？", "expect": "answer", "gold": ["gold"]},
+      {"q": "Few-shot 提示是怎么锚定输出格式的？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "用思维链提示有什么代价？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么提示词写得含糊会导致答非所问？", "expect": "answer", "gold": ["gold"]},
+      {"q": "员工报销流程是怎样的？", "expect": "refuse", "gold": []},
+      {"q": "思维链提示需要额外的推理 token 吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "上下文工程",
+    "docs": [
+      {"role": "gold", "text": "上下文工程关注在有限 token 预算内给模型喂什么内容，包括证据选择、排序、压缩与预算分配。"},
+      {"role": "distractor", "text": "上下文组装通常按相关性分数排序后截断，并保留来源引用，以便答案可以逐条溯源。"},
+      {"role": "distractor", "text": "上下文越长信噪比越低，无关证据会稀释关键信息，并推高输入侧的 token 成本。"},
+      {"role": "conflict", "text": "上下文工程只需要把全部检索结果都塞进提示词，不需要做预算分配与裁剪。"}
+    ],
+    "queries": [
+      {"q": "上下文工程包含哪些内容？", "expect": "answer", "gold": ["gold"]},
+      {"q": "上下文组装一般怎么做？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "上下文里塞太多无关证据有什么坏处？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么要在有限的 token 预算内做取舍？", "expect": "answer", "gold": ["gold"]},
+      {"q": "外地车牌进市区需要办什么手续？", "expect": "refuse", "gold": []},
+      {"q": "上下文工程需要做预算分配和裁剪吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "Lost in the Middle 位置偏差",
+    "docs": [
+      {"role": "gold", "text": "Lost in the Middle 是位置偏差现象：模型对上下文中段证据的利用率最低，开头与结尾的证据更易被采信。"},
+      {"role": "distractor", "text": "应对位置偏差的常见手段是把最关键的证据重排到上下文的首尾两端。"},
+      {"role": "distractor", "text": "位置偏差随输入长度增长而加剧，因此无限堆叠证据反而会拉低整体准确率。"},
+      {"role": "conflict", "text": "模型对上下文各个位置的注意力是均匀的，不需要重排证据顺序。"}
+    ],
+    "queries": [
+      {"q": "Lost in the Middle 描述的是什么现象？", "expect": "answer", "gold": ["gold"]},
+      {"q": "怎么缓解位置偏差？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "上下文越长，位置偏差会更严重吗？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么关键证据放在中间容易被忽略？", "expect": "answer", "gold": ["gold"]},
+      {"q": "换驾照需要准备哪些材料？", "expect": "refuse", "gold": []},
+      {"q": "需要重排证据顺序吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "语义缓存",
+    "docs": [
+      {"role": "gold", "text": "语义缓存把历史问题编码成向量，当新问题与缓存项的相似度超过阈值时复用旧答案，跳过检索与生成。"},
+      {"role": "distractor", "text": "相似度阈值决定缓存命中率与误命中风险，阈值偏低会把不同意图的问题误判为语义等价。"},
+      {"role": "distractor", "text": "语义缓存只对高频重复的问法有效，遇到个性化或强时效问题容易返回过期答案。"},
+      {"role": "conflict", "text": "语义缓存仅比对问题的字面字符串，不需要向量相似度计算就能判断两个问题是否等价。"}
+    ],
+    "queries": [
+      {"q": "语义缓存是怎么工作的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "相似度阈值设得太低会怎样？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "语义缓存适合用在哪些场景？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么命中缓存后可以跳过检索和生成？", "expect": "answer", "gold": ["gold"]},
+      {"q": "我寄的快递一直没到，怎么投诉？", "expect": "refuse", "gold": []},
+      {"q": "语义缓存是靠字面字符串比对来判断问题是否等价吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "SSE 流式输出",
+    "docs": [
+      {"role": "gold", "text": "SSE 是基于 HTTP 的服务器单向推送协议，服务端持续分块下发数据，常用于大模型逐字流式输出。"},
+      {"role": "distractor", "text": "SSE 长连接需要服务端定期发送心跳注释行，否则中间代理会在空闲超时后断开连接。"},
+      {"role": "distractor", "text": "SSE 只支持服务端到客户端的单向推送，需要双向通信时应改用 WebSocket。"},
+      {"role": "conflict", "text": "SSE 本身就是双向通信通道，不需要改用 WebSocket 就能实现客户端到服务端的消息回传。"}
+    ],
+    "queries": [
+      {"q": "为什么大模型接口能一个字一个字地吐结果？", "expect": "answer", "gold": ["gold"]},
+      {"q": "SSE 连接为什么会莫名断开？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "SSE 和 WebSocket 之间该怎么选？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "SSE 建立在什么协议之上，数据是怎么下发的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "哪家银行的定期存款利率最高？", "expect": "refuse", "gold": []},
+      {"q": "SSE 能实现客户端到服务端的消息回传吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "RAG 评测框架 Ragas",
+    "docs": [
+      {"role": "gold", "text": "Ragas 是面向 RAG 的评测框架，用忠实度、答案相关性与上下文召回等指标量化检索和生成的质量。"},
+      {"role": "distractor", "text": "Ragas 通过调用大模型把答案拆成可验证的陈述句，再逐条核对能否由检索上下文推出，以此算忠实度。"},
+      {"role": "distractor", "text": "Ragas 的指标依赖大模型裁判，评测本身要消耗 token 且分数存在波动，需要用人工标注做校准。"},
+      {"role": "conflict", "text": "Ragas 的指标全部由规则计算，不需要任何大模型作为裁判，因此评测结果不存在波动。"}
+    ],
+    "queries": [
+      {"q": "Ragas 是用来评测什么的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "Ragas 的忠实度指标是怎么算出来的？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "用 Ragas 做评测有什么代价？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "RAG 的质量可以从哪些维度量化？", "expect": "answer", "gold": ["gold"]},
+      {"q": "这周末有什么电影上映？", "expect": "refuse", "gold": []},
+      {"q": "Ragas 的指标是规则计算，还是靠大模型裁判？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "QLoRA 微调",
+    "docs": [
+      {"role": "gold", "text": "QLoRA 先把基座模型量化成 4-bit，再在其上训练低秩适配器，从而在单张消费级显卡上微调大模型。"},
+      {"role": "distractor", "text": "QLoRA 常用 NF4 量化类型与双重量化，并把优化器状态分页到 CPU 内存以压低显存占用。"},
+      {"role": "distractor", "text": "QLoRA 的训练吞吐低于全参数微调，量化误差会让它在细粒度任务上略逊于 16-bit 的 LoRA。"},
+      {"role": "conflict", "text": "QLoRA 的显存占用与全参数微调基本相当，4-bit 量化并不能降低训练所需显存。"}
+    ],
+    "queries": [
+      {"q": "QLoRA 是怎么在单卡上微调大模型的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "QLoRA 里有哪些省显存的手段？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "QLoRA 和 16-bit LoRA 的效果差多少？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么要先把基座模型量化成 4-bit？", "expect": "answer", "gold": ["gold"]},
+      {"q": "健身房年卡一般多少钱？", "expect": "refuse", "gold": []},
+      {"q": "QLoRA 的 4-bit 量化能降低训练显存吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "GGUF 量化部署",
+    "docs": [
+      {"role": "gold", "text": "GGUF 是 llama.cpp 推出的模型文件格式，把权重与元数据打包成单文件，支持多种量化等级用于本地推理。"},
+      {"role": "distractor", "text": "GGUF 模型可以直接用 llama.cpp 或 Ollama 加载，并支持按层卸载到 GPU 来加速推理。"},
+      {"role": "distractor", "text": "量化等级越低文件越小、显存占用越少，但 Q4 以下的精度损失会在长文本任务里明显暴露。"},
+      {"role": "conflict", "text": "GGUF 只有 Q8 一种量化等级，不需要在体积与精度之间做取舍。"}
+    ],
+    "queries": [
+      {"q": "GGUF 文件和传统权重文件有什么区别？", "expect": "answer", "gold": ["gold"]},
+      {"q": "本地怎么加载 GGUF 模型？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "量化等级选低一点有什么风险？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么 GGUF 适合本地部署？", "expect": "answer", "gold": ["gold"]},
+      {"q": "明天的航班取消了怎么改签？", "expect": "refuse", "gold": []},
+      {"q": "GGUF 的量化等级需要在体积和精度之间取舍吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "可观测性三支柱",
+    "docs": [
+      {"role": "gold", "text": "可观测性由指标、日志与链路追踪三根支柱构成，分别回答系统是否异常、为何异常以及异常在哪一跳。"},
+      {"role": "distractor", "text": "指标用 Prometheus 采集时序数据，日志用 ELK 聚合检索，追踪靠 OpenTelemetry 传播上下文。"},
+      {"role": "distractor", "text": "三支柱各自埋点会带来存储成本与采样偏差，通常用尾部采样保留慢请求与错误链路。"},
+      {"role": "conflict", "text": "可观测性只需要指标和日志两根支柱，链路追踪并非必需组件。"}
+    ],
+    "queries": [
+      {"q": "可观测性的三根支柱分别回答什么问题？", "expect": "answer", "gold": ["gold"]},
+      {"q": "三支柱一般用什么工具落地？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "埋点铺得太开会带来什么代价？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么只靠日志很难定位跨服务故障？", "expect": "answer", "gold": ["gold"]},
+      {"q": "这个月的水电费在哪里交？", "expect": "refuse", "gold": []},
+      {"q": "可观测性只需要指标和日志两根支柱吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "大模型幻觉抑制",
+    "docs": [
+      {"role": "gold", "text": "幻觉指模型生成看似合理却与事实或给定证据不符的内容，抑制它需要让回答有据可依并能追溯。"},
+      {"role": "distractor", "text": "常见抑制手段包括检索增强、要求模型标注引用来源，以及在证据不足时显式拒答。"},
+      {"role": "distractor", "text": "降低温度或加长提示词只能缓解而无法根除幻觉，模型对自身输出的置信度往往并不可靠。"},
+      {"role": "conflict", "text": "只要把温度调到 0 就能彻底消除幻觉，不需要检索或引用机制。"}
+    ],
+    "queries": [
+      {"q": "模型产生的幻觉具体指什么？", "expect": "answer", "gold": ["gold"]},
+      {"q": "有哪些抑制幻觉的常见手段？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么不能完全信任模型自己给出的置信度？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "怎么让模型的回答有据可依、可追溯？", "expect": "answer", "gold": ["gold"]},
+      {"q": "小区的停车位怎么租？", "expect": "refuse", "gold": []},
+      {"q": "只要把温度调到 0 就能彻底消除幻觉吗？", "expect": "refuse", "gold": []}
+    ]
+  }
+]

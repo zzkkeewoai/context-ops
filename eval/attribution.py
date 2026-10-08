@@ -42,6 +42,7 @@ class FailureType(str, Enum):
     GENERATION_ERROR = "generation_error"            # ④ 生成错误（证据没问题，答案还是错）
     OVER_REFUSAL = "over_refusal"                    # 过拒：本可回答却拒答（可用性损失）
     MISSED_REFUSAL = "missed_refusal"                # 漏拒：本应拒答却作答（幻觉风险）
+    MISSED_CONFLICT = "missed_conflict"              # 漏检：证据互相矛盾却没被发现
 
 
 @dataclass
@@ -57,6 +58,18 @@ class Attribution:
     gold_in_candidates: bool = False
     gold_in_selected: bool = False
     gold_cited: bool = False
+
+
+def conflict_detected(snapshot: ContextSnapshot) -> bool:
+    """本次请求有没有检出证据冲突 —— 直接读校验器留在快照里的结论。
+
+    为什么单独抽成函数：归因器和指标都要用同一个判据，
+    两处各写一遍迟早会漂移（一处改了另一处忘了）。
+    """
+    validator_result = snapshot.context.validator
+    if validator_result is None:
+        return False
+    return validator_result.checks.get("conflict_pairs", 0.0) > 0
 
 
 def attribute(snapshot: ContextSnapshot, case: Dict) -> Attribution:
@@ -76,11 +89,33 @@ def attribute(snapshot: ContextSnapshot, case: Dict) -> Attribution:
     gold_in_selected = bool(gold_set & selected_ids)
     gold_cited = bool(gold_set & cited_ids)
 
+    # ---------- conflict 类用例：考的是"矛盾有没有被发现" ----------
+    # 【v3】这类用例的期望**不是**"拒答"。
+    #   数据源里有互相矛盾的文档，是**数据质量**问题；
+    #   系统的职责是发现它、按来源可信度裁决，而不是因为"我的知识库自相矛盾"就摆烂不答。
+    #   （实测过：用"一检出冲突就拒答"的做法，在 204 条数据集上过拒率高达 59%，
+    #     一半以上的问题答不了，产品上不可用。）
+    #   所以这类用例只考一件事：矛盾有没有被检出。
+    if case.get("category") == "conflict":
+        if conflict_detected(snapshot):
+            return Attribution(
+                case_id,
+                FailureType.CORRECT,
+                "证据冲突已检出并按来源权威度裁决"
+                + ("（已剔除低权威证据后正常作答）" if not snapshot.answer.refused else "（无法裁决，正确拒答）"),
+                gold_in_candidates=gold_in_candidates,
+                gold_in_selected=gold_in_selected,
+            )
+        return Attribution(
+            case_id,
+            FailureType.MISSED_CONFLICT,
+            "证据之间存在矛盾但**没有被检出** —— 两条互相矛盾的说法会被一起交给模型，"
+            "答案对不对全看运气。该检查冲突检测规则（否定词表 / 主题重叠阈值 / 是否误杀）",
+        )
+
     # ---------- 先判定"拒答"这个动作对不对 ----------
-    # 为什么放在最前面：拒答是二值动作，且两类错误代价不对称、方向相反，
-    # 必须在进入"哪一环出错"的细分之前先定性，否则会被 generation_error 吞掉。
     if not gold:
-        # 该拒答的问题（知识库外 / 证据互相冲突）
+        # 知识库外的问题：正确行为是拒答
         if snapshot.answer.refused:
             return Attribution(
                 case_id, FailureType.CORRECT_REFUSAL, "该拒答的问题正确拒答"

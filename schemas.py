@@ -38,6 +38,16 @@ class Candidate(BaseModel):
     text: str
     score: float = Field(description="相关性分数（不同来源量纲可能不同）")
     source: str = Field(default="vector", description="vector / keyword / graph")
+    authority: float = Field(
+        default=0.5,
+        description=(
+            "来源权威度 0~1，冲突裁决的依据。"
+            "真实系统从来源类型（官方文档/内部 wiki/社区帖子）、更新时间、"
+            "被引用次数、人工标注推断。"
+            "**没有这个信号时，遇到互相矛盾的证据只能一律拒答** —— "
+            "而实测那样做会让一半以上的问题答不了"
+        ),
+    )
 
 
 # ============================================================
@@ -52,6 +62,7 @@ class Evidence(BaseModel):
     position: int = Field(description="在上下文中的位置（0 起）—— 用于分析 Lost in the Middle")
     tokens: int
     source: str = "vector"
+    authority: float = 0.5
 
 
 class Dropped(BaseModel):
@@ -83,6 +94,15 @@ class ValidatorResult(BaseModel):
     checks: Dict[str, float] = Field(default_factory=dict, description="各维度得分")
     action: Optional[str] = Field(default=None, description="fail 时：rebuild / refuse")
     detail: Optional[str] = None
+    dropped_evidence: List[str] = Field(
+        default_factory=list,
+        description=(
+            "裁决后要求**剔除**的证据 id。"
+            "检出证据互相矛盾、且能判断谁更可信时，"
+            "正确的做法是把权威度低的一方移出上下文再正常作答，"
+            "而不是因为数据源有矛盾就拒绝回答整个问题"
+        ),
+    )
 
 
 class BuildResult(BaseModel):

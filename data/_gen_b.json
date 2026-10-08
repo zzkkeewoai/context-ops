@@ -1,0 +1,172 @@
+[
+  {
+    "topic": "Function Calling 工具调用",
+    "docs": [
+      {"role": "gold", "text": "Function Calling 让模型输出结构化的工具名与参数，工具的实际执行由宿主程序完成，执行结果再回填给模型。"},
+      {"role": "distractor", "text": "工具声明里的 description 与参数 schema 写得越明确，模型选错工具、漏填必填参数的概率就越低。"},
+      {"role": "distractor", "text": "模型可能编造不存在的工具名或把参数传成错误类型，宿主必须在执行前校验入参并回传结构化错误。"},
+      {"role": "conflict", "text": "Function Calling 由模型自身直接执行工具并返回结果，不需要宿主程序参与工具的执行与回填。"}
+    ],
+    "queries": [
+      {"q": "Function Calling 里工具到底由谁执行？", "expect": "answer", "gold": ["gold"]},
+      {"q": "Function Calling 解决了什么问题？", "expect": "answer", "gold": ["gold"]},
+      {"q": "怎么让模型更少选错工具？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "模型调用工具时常见的错误有哪些？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "明天上海的天气怎么样？", "expect": "refuse", "gold": []},
+      {"q": "模型会自己直接执行工具吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "ReAct Agent 框架",
+    "docs": [
+      {"role": "gold", "text": "ReAct 让模型交替产出推理与行动，再根据工具返回的观察修正下一步推理，直到得出最终答案。"},
+      {"role": "distractor", "text": "ReAct 提示词必须约定 Action 与 Observation 的固定标签，否则模型输出无法被解析成工具调用。"},
+      {"role": "distractor", "text": "ReAct 不做全局规划，步数一多就容易偏离目标，复杂任务更适合先规划再执行或改用状态机编排。"},
+      {"role": "conflict", "text": "ReAct 只在开始时推理一次，后续每一步都直接调用工具，不需要再产生推理文本。"}
+    ],
+    "queries": [
+      {"q": "ReAct 的核心机制是什么？", "expect": "answer", "gold": ["gold"]},
+      {"q": "ReAct 的循环为什么要用固定标签？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "ReAct 适合处理什么任务？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "ReAct 和先规划再执行的思路有什么区别？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "红烧肉怎么做才好吃？", "expect": "refuse", "gold": []},
+      {"q": "ReAct 每一步都需要产生推理吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "状态机编排（LangGraph）",
+    "docs": [
+      {"role": "gold", "text": "LangGraph 用有向图与共享状态编排 Agent 流程，节点是计算步骤，边决定状态如何流转与何时结束。"},
+      {"role": "distractor", "text": "LangGraph 的 checkpointer 把每步状态持久化，因此支持中断、重放以及人工审批后从断点恢复执行。"},
+      {"role": "distractor", "text": "条件边让分支走向由代码而不是模型决定，适合把不可控的循环收敛成有限的状态转移。"},
+      {"role": "conflict", "text": "LangGraph 的节点之间可以任意跳转，执行顺序完全由模型自由决定，不需要预先定义边和结束条件。"}
+    ],
+    "queries": [
+      {"q": "LangGraph 是怎么编排流程的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "LangGraph 的状态持久化有什么用？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "条件边解决的是什么问题？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "LangGraph 如何让 Agent 流程变得可控？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "去日本旅游需要办什么签证？", "expect": "refuse", "gold": []},
+      {"q": "LangGraph 的节点流转需要预先定义边吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "工具网关设计",
+    "docs": [
+      {"role": "gold", "text": "工具网关是所有工具调用的统一入口，集中完成鉴权、参数校验、限流、超时控制与调用审计。"},
+      {"role": "distractor", "text": "网关为每个工具登记名称、参数 schema 与风险等级，Agent 只能调用注册表里声明过的工具。"},
+      {"role": "distractor", "text": "把工具收敛到网关后可以统一埋点，按工具维度统计调用量、失败率与延迟，便于快速定位问题。"},
+      {"role": "conflict", "text": "工具网关只做请求转发，鉴权与限流不由网关负责，必须由每个工具自己实现。"}
+    ],
+    "queries": [
+      {"q": "工具网关主要负责哪些事情？", "expect": "answer", "gold": ["gold"]},
+      {"q": "工具是怎么注册到网关里的？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "把工具都收进网关有什么收益？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "Agent 调用工具为什么要经过网关而不是直连？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "感冒了应该吃什么药？", "expect": "refuse", "gold": []},
+      {"q": "鉴权与限流应该由工具网关负责吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "幂等性设计",
+    "docs": [
+      {"role": "gold", "text": "幂等指同一个请求执行多次与执行一次的效果相同，系统靠唯一的幂等键识别并拦截重复请求。"},
+      {"role": "distractor", "text": "幂等键通常由任务 ID、工具名与参数摘要拼接后哈希得到，并设置合理的过期时间以便回收。"},
+      {"role": "distractor", "text": "写类接口必须幂等，否则下游超时重试会造成重复扣款、重复发货这类不可回滚的事故。"},
+      {"role": "conflict", "text": "幂等键只由工具名与参数摘要拼成即可，不需要带任务 ID。"}
+    ],
+    "queries": [
+      {"q": "什么是幂等？", "expect": "answer", "gold": ["gold"]},
+      {"q": "幂等键一般由哪些部分拼成？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么写类接口必须幂等？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "幂等能避免哪些线上事故？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "钢琴考级一共分几级？", "expect": "refuse", "gold": []},
+      {"q": "幂等键需要带任务 ID 吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "权限模型与高危审批 HITL",
+    "docs": [
+      {"role": "gold", "text": "HITL 在 Agent 执行高危操作前把控制权交回人工，由人确认或修改之后才继续执行。"},
+      {"role": "distractor", "text": "工具按风险分为只读、写入与资金三类，风险等级决定是否需要人工审批以及审批的粒度。"},
+      {"role": "distractor", "text": "审批超时要有兜底：无人响应时按拒绝处理，并把待审批状态与上下文快照一起持久化。"},
+      {"role": "conflict", "text": "高危操作不需要人工确认，只要模型声明操作安全就可以直接执行。"}
+    ],
+    "queries": [
+      {"q": "HITL 在 Agent 里解决什么问题？", "expect": "answer", "gold": ["gold"]},
+      {"q": "工具的风险等级是怎么划分的？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "人工审批一直没人处理会怎样？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "哪些操作需要停下来等人确认？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "世界杯上一届的冠军是哪个队？", "expect": "refuse", "gold": []},
+      {"q": "高危操作需要人工确认吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "Agent 失败归因",
+    "docs": [
+      {"role": "gold", "text": "失败归因把 Agent 的失败结果拆解到具体环节，判定问题出在检索、上下文组装、模型推理还是工具执行。"},
+      {"role": "distractor", "text": "归因依赖每步可回放的轨迹：检索候选、裁剪原因、最终上下文、模型输出与工具返回都要落盘。"},
+      {"role": "distractor", "text": "把失败先粗分成模型能力与上下文质量两类，才能决定是换模型还是改检索与组装策略。"},
+      {"role": "conflict", "text": "失败归因只需要看最终答案对不对，不需要拆解中间步骤，也无法定位到具体环节。"}
+    ],
+    "queries": [
+      {"q": "Agent 失败了怎么定位原因？", "expect": "answer", "gold": ["gold"]},
+      {"q": "做失败归因需要采集哪些数据？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "归因结果怎么指导后续优化动作？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "归因和上下文质量是什么关系？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "阳台上的绿萝叶子发黄怎么处理？", "expect": "refuse", "gold": []},
+      {"q": "失败归因需要拆解中间步骤吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "多 Agent 协作",
+    "docs": [
+      {"role": "gold", "text": "多 Agent 协作把任务拆给多个专职 Agent，再通过共享状态与消息传递汇总各自的执行结果。"},
+      {"role": "distractor", "text": "常见拓扑有主管-工人、流水线与对等协商三种，选哪种取决于子任务能否并行、结果是否互相依赖。"},
+      {"role": "distractor", "text": "Agent 之间只传结构化结论而不传完整对话，否则共享上下文会被彼此的中间过程迅速撑爆。"},
+      {"role": "conflict", "text": "多 Agent 之间必须传递完整对话历史，不能只传结构化结论，否则信息一定会丢失。"}
+    ],
+    "queries": [
+      {"q": "多 Agent 协作是怎么分工的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "多 Agent 有哪些常见的协作拓扑？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "多 Agent 系统为什么容易把上下文撑爆？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "多 Agent 适合什么任务，怎么控制开销？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "从北京到上海的高铁要坐多久？", "expect": "refuse", "gold": []},
+      {"q": "多 Agent 之间需要传递完整对话历史吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "Token 预算与成本控制",
+    "docs": [
+      {"role": "gold", "text": "Token 预算给 system、历史、证据与输出各自分配上限，超出时按优先级裁剪而不是无限截断。"},
+      {"role": "distractor", "text": "成本主要由输入 token 决定，把全量文档塞进上下文会让单次调用成本随文档数量线性上升。"},
+      {"role": "distractor", "text": "常见省法有语义缓存、历史摘要压缩与小模型分流，但压缩会丢细节，需要保留来源引用。"},
+      {"role": "conflict", "text": "Token 预算只需要限制输出长度，输入上下文不需要设上限，塞得越多回答越准。"}
+    ],
+    "queries": [
+      {"q": "Token 预算该怎么分配？", "expect": "answer", "gold": ["gold"]},
+      {"q": "为什么上下文越长调用成本越高？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "有哪些降低 token 成本的办法？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "预算不够时应该先裁掉哪部分？", "expect": "answer", "gold": ["gold"]},
+      {"q": "最近有什么好看的科幻电影？", "expect": "refuse", "gold": []},
+      {"q": "输入上下文需要设 token 上限吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "死循环检测与约束",
+    "docs": [
+      {"role": "gold", "text": "Agent 死循环指它反复调用同一工具或重复同一步推理而无法收敛，需要用步数与重复度约束来打断。"},
+      {"role": "distractor", "text": "常见约束有最大步数、单工具连续调用次数上限与总耗时超时，触发后强制降级或转人工处理。"},
+      {"role": "distractor", "text": "只限步数并不够，模型可能把同一次调用换个参数绕过计数，要同时对参数指纹与结果做去重判断。"},
+      {"role": "conflict", "text": "死循环只需要限制最大步数即可，重复调用同一工具不需要任何检测，模型自己会收敛。"}
+    ],
+    "queries": [
+      {"q": "什么是 Agent 死循环？", "expect": "answer", "gold": ["gold"]},
+      {"q": "有哪些手段能打断 Agent 的死循环？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "循环约束一般会设置哪些阈值？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "换个参数重复调用同一工具该怎么发现？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "公司年假有多少天？", "expect": "refuse", "gold": []},
+      {"q": "只限制最大步数能防止死循环吗？", "expect": "refuse", "gold": []}
+    ]
+  }
+]

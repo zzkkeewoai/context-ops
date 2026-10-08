@@ -1,0 +1,70 @@
+[
+  {
+    "topic": "多轮对话上下文管理",
+    "docs": [
+      {"role": "gold", "text": "多轮对话要把历史消息与检索证据一起放进同一次请求，两者共享同一份 token 预算。"},
+      {"role": "distractor", "text": "历史消息过多时应做摘要或滑窗截断，否则会挤占本该留给证据的预算。"},
+      {"role": "distractor", "text": "只保留最近几轮容易丢掉早期约定的关键约束，需要把会话状态单独记下来而不是靠历史原文。"},
+      {"role": "conflict", "text": "多轮对话的历史消息不占用 token 预算，只有检索证据才需要限制长度。"}
+    ],
+    "queries": [
+      {"q": "多轮对话的上下文里都放了什么？", "expect": "answer", "gold": ["gold"]},
+      {"q": "历史消息太多应该怎么处理？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么不能只保留最近几轮？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "多轮场景下 token 预算怎么分配？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "公司的打印机在哪里？", "expect": "refuse", "gold": []},
+      {"q": "历史消息会占用 token 预算吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "长上下文压缩",
+    "docs": [
+      {"role": "gold", "text": "上下文压缩用摘要或裁剪减少 token 消耗，但压缩是有损的，必须保留来源引用以便回溯。"},
+      {"role": "distractor", "text": "压缩比过高会让模型看不到关键数字与限定条件，答案看上去合理但已经失真。"},
+      {"role": "distractor", "text": "按位置裁剪比按相关性裁剪更危险，因为关键证据可能正好落在被切掉的中段。"},
+      {"role": "conflict", "text": "上下文压缩是无损的，压缩之后模型获得的信息与读原文完全一致。"}
+    ],
+    "queries": [
+      {"q": "上下文压缩是什么？", "expect": "answer", "gold": ["gold"]},
+      {"q": "压缩比太高会产生什么问题？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "按位置裁剪有什么风险？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "压缩之后还需要保留引用吗？", "expect": "answer", "gold": ["gold"]},
+      {"q": "怎么申请差旅报销？", "expect": "refuse", "gold": []},
+      {"q": "压缩是无损的吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "跨文档对比查询",
+    "docs": [
+      {"role": "gold", "text": "跨文档对比查询要同时召回多个对象的证据，缺任何一方都会让结论变得片面。"},
+      {"role": "distractor", "text": "对比类问题如果只召回到一方，模型往往会用常识补齐另一方，产出看似合理的错误答案。"},
+      {"role": "distractor", "text": "对比查询对上下文组装更敏感，因为成对的证据最好相邻出现，隔太远容易只被用上一条。"},
+      {"role": "conflict", "text": "跨文档对比只需要召回其中一方，模型可以自行推断出另一方的特征。"}
+    ],
+    "queries": [
+      {"q": "跨文档对比查询难在哪里？", "expect": "answer", "gold": ["gold"]},
+      {"q": "只召回到一方会出现什么后果？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么对比查询对上下文组装更敏感？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "对比查询要求成对召回吗？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "附近有什么好吃的餐厅？", "expect": "refuse", "gold": []},
+      {"q": "对比查询只召回一方就够了吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "知识时效性与版本冲突",
+    "docs": [
+      {"role": "gold", "text": "知识库更新后同一个问题可能存在新旧两份文档，同时被检索到就会形成证据冲突。"},
+      {"role": "distractor", "text": "缓解做法是给文档打生效时间，检索时按时间过滤，或者对更新的文档给更高权重。"},
+      {"role": "distractor", "text": "文档没有时间字段时，同一属性的两种说法分不出谁更新，只能拒答或明确提示存在分歧。"},
+      {"role": "conflict", "text": "知识库更新时会自动清除旧文档，因此不会出现新旧两个版本同时被检索到的情况。"}
+    ],
+    "queries": [
+      {"q": "为什么检索结果里会出现互相矛盾的证据？", "expect": "answer", "gold": ["gold"]},
+      {"q": "怎么处理新旧文档并存的问题？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "文档没有时间字段该怎么办？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "同一属性有两种说法时怎么判断？", "expect": "answer", "gold": ["gold", "distractor"]},
+      {"q": "入职体检要预约哪家医院？", "expect": "refuse", "gold": []},
+      {"q": "更新时会自动清除旧文档吗？", "expect": "refuse", "gold": []}
+    ]
+  }
+]

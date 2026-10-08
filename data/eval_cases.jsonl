@@ -1,15 +1,204 @@
-{"case_id": "c01", "category": "single", "query": "Milvus 是什么？", "gold_evidence": ["doc_02"]}
-{"case_id": "c02", "category": "single", "query": "RRF 的公式是什么？", "gold_evidence": ["doc_04"]}
-{"case_id": "c03", "category": "multi", "query": "FastAPI 有什么特点？", "gold_evidence": ["doc_01", "doc_06", "doc_15"]}
-{"case_id": "c04", "category": "single", "query": "Neo4j 使用什么查询语言？", "gold_evidence": ["doc_03"]}
-{"case_id": "c05", "category": "single", "query": "语义缓存如何判断两个问题等价？", "gold_evidence": ["doc_07"]}
-{"case_id": "c06", "category": "single", "query": "Prometheus 如何采集指标？", "gold_evidence": ["doc_08"]}
-{"case_id": "c07", "category": "single", "query": "SSE 是什么？", "gold_evidence": ["doc_09"]}
-{"case_id": "c08", "category": "single", "query": "LangGraph 如何避免死循环？", "gold_evidence": ["doc_10"]}
-{"case_id": "c09", "category": "single", "query": "向量检索有什么局限？", "gold_evidence": ["doc_11"]}
-{"case_id": "c10", "category": "single", "query": "上下文工程包含哪些内容？", "gold_evidence": ["doc_12"]}
-{"case_id": "c11", "category": "single", "query": "RAG 如何缓解幻觉？", "gold_evidence": ["doc_13"]}
-{"case_id": "c12", "category": "single", "query": "Neo4j 的两跳查询有什么用？", "gold_evidence": ["doc_14"]}
-{"case_id": "c13", "category": "out_of_kb", "query": "今天天气怎么样？", "gold_evidence": []}
-{"case_id": "c14", "category": "out_of_kb", "query": "公司年会在哪里举办？", "gold_evidence": []}
-{"case_id": "c15", "category": "conflict", "query": "Milvus 部署依赖 MinIO 吗？", "gold_evidence": []}
+{"case_id": "c001", "category": "single", "query": "RAG 要把什么内容作为上下文交给大模型？", "gold_evidence": ["doc_001"], "topic": "RAG 检索增强生成基础"}
+{"case_id": "c002", "category": "single", "query": "外部知识库的文档是怎么进入 RAG 上下文的？", "gold_evidence": ["doc_001"], "topic": "RAG 检索增强生成基础"}
+{"case_id": "c003", "category": "multi", "query": "RAG 有哪些常见失败模式？", "gold_evidence": ["doc_002", "doc_003"], "topic": "RAG 检索增强生成基础"}
+{"case_id": "c004", "category": "single", "query": "为什么 RAG 要在生成答案前先找资料？", "gold_evidence": ["doc_001"], "topic": "RAG 检索增强生成基础"}
+{"case_id": "c005", "category": "out_of_kb", "query": "今天上海的天气怎么样？", "gold_evidence": [], "topic": "RAG 检索增强生成基础", "conflict_overlap": 0.17}
+{"case_id": "c006", "category": "conflict", "query": "RAG 的召回需要关键词检索和融合模块吗？", "gold_evidence": [], "topic": "RAG 检索增强生成基础", "conflict_overlap": 0.89}
+{"case_id": "c007", "category": "single", "query": "向量检索的相似度是怎么算的？", "gold_evidence": ["doc_005"], "topic": "向量检索原理"}
+{"case_id": "c008", "category": "multi", "query": "向量检索用 HNSW 加速近邻匹配的原理是什么？", "gold_evidence": ["doc_006", "doc_007"], "topic": "向量检索原理"}
+{"case_id": "c009", "category": "multi", "query": "向量检索的效果依赖什么？", "gold_evidence": ["doc_006", "doc_007"], "topic": "向量检索原理"}
+{"case_id": "c010", "category": "single", "query": "为什么要把文本编码成向量再比较？", "gold_evidence": ["doc_005"], "topic": "向量检索原理"}
+{"case_id": "c011", "category": "out_of_kb", "query": "食堂的午餐几点开始供应？", "gold_evidence": [], "topic": "向量检索原理", "conflict_overlap": 0.0}
+{"case_id": "c012", "category": "conflict", "query": "语料更新后 ANN 索引需要重建，还是会自动增量更新？", "gold_evidence": [], "topic": "向量检索原理", "conflict_overlap": 0.85}
+{"case_id": "c013", "category": "single", "query": "Milvus 属于哪一类数据库？", "gold_evidence": ["doc_009"], "topic": "向量数据库 Milvus"}
+{"case_id": "c014", "category": "multi", "query": "Milvus 生产集群怎么部署？", "gold_evidence": ["doc_010", "doc_011"], "topic": "向量数据库 Milvus"}
+{"case_id": "c015", "category": "multi", "query": "Milvus 的查询性能受哪些参数影响？", "gold_evidence": ["doc_010", "doc_011"], "topic": "向量数据库 Milvus"}
+{"case_id": "c016", "category": "single", "query": "Milvus 在 RAG 里承担什么角色？", "gold_evidence": ["doc_009"], "topic": "向量数据库 Milvus"}
+{"case_id": "c017", "category": "out_of_kb", "query": "员工年假有几天？", "gold_evidence": [], "topic": "向量数据库 Milvus", "conflict_overlap": 0.0}
+{"case_id": "c018", "category": "conflict", "query": "Milvus 支持 HNSW 图索引做近邻查询吗？", "gold_evidence": [], "topic": "向量数据库 Milvus", "conflict_overlap": 0.9}
+{"case_id": "c019", "category": "single", "query": "BM25 的排序分数是怎么算出来的？", "gold_evidence": ["doc_013"], "topic": "混合检索 BM25"}
+{"case_id": "c020", "category": "single", "query": "BM25 为什么能压低长文档的分数？", "gold_evidence": ["doc_013"], "topic": "混合检索 BM25"}
+{"case_id": "c021", "category": "multi", "query": "BM25 对精确术语和型号的匹配效果如何？", "gold_evidence": ["doc_014", "doc_015"], "topic": "混合检索 BM25"}
+{"case_id": "c022", "category": "multi", "query": "BM25 为什么会在口语化提问下漏召回？", "gold_evidence": ["doc_014", "doc_015"], "topic": "混合检索 BM25"}
+{"case_id": "c023", "category": "out_of_kb", "query": "明天股市会涨还是跌？", "gold_evidence": [], "topic": "混合检索 BM25", "conflict_overlap": 0.0}
+{"case_id": "c024", "category": "conflict", "query": "BM25 需要设置 b 参数做长度归一化吗？", "gold_evidence": [], "topic": "混合检索 BM25", "conflict_overlap": 0.82}
+{"case_id": "c025", "category": "single", "query": "RRF 是怎么把多路检索结果合成一个排序的？", "gold_evidence": ["doc_017"], "topic": "RRF 融合"}
+{"case_id": "c026", "category": "single", "query": "RRF 为什么只按排名累加就行？", "gold_evidence": ["doc_017"], "topic": "RRF 融合"}
+{"case_id": "c027", "category": "multi", "query": "RRF 里的 k 取值多大会削弱头部优势？", "gold_evidence": ["doc_018", "doc_019"], "topic": "RRF 融合"}
+{"case_id": "c028", "category": "multi", "query": "RRF 适合什么样的召回源组合？", "gold_evidence": ["doc_018", "doc_019"], "topic": "RRF 融合"}
+{"case_id": "c029", "category": "out_of_kb", "query": "附近哪家医院可以挂号？", "gold_evidence": [], "topic": "RRF 融合", "conflict_overlap": 0.0}
+{"case_id": "c030", "category": "conflict", "query": "RRF 的平滑常数取 60 会把名次分差压平吗？", "gold_evidence": [], "topic": "RRF 融合", "conflict_overlap": 0.83}
+{"case_id": "c031", "category": "single", "query": "Rerank 是怎么重新排序候选证据的？", "gold_evidence": ["doc_021"], "topic": "Rerank 重排"}
+{"case_id": "c032", "category": "multi", "query": "Rerank 的耗时和候选数量有什么关系？", "gold_evidence": ["doc_022", "doc_023"], "topic": "Rerank 重排"}
+{"case_id": "c033", "category": "multi", "query": "Rerank 一般放在检索流程的哪个位置？", "gold_evidence": ["doc_022", "doc_023"], "topic": "Rerank 重排"}
+{"case_id": "c034", "category": "single", "query": "Rerank 的精排分数为什么比召回分数更可信？", "gold_evidence": ["doc_021"], "topic": "Rerank 重排"}
+{"case_id": "c035", "category": "out_of_kb", "query": "怎么办理出国签证？", "gold_evidence": [], "topic": "Rerank 重排", "conflict_overlap": 0.0}
+{"case_id": "c036", "category": "conflict", "query": "Rerank 需要让查询和文档逐对交互吗？", "gold_evidence": [], "topic": "Rerank 重排", "conflict_overlap": 0.83}
+{"case_id": "c037", "category": "single", "query": "为什么要对长文档做 Chunking？", "gold_evidence": ["doc_025"], "topic": "文档切分 Chunking"}
+{"case_id": "c038", "category": "multi", "query": "Chunking 的片段一般取多长，重叠比例多少？", "gold_evidence": ["doc_026", "doc_027"], "topic": "文档切分 Chunking"}
+{"case_id": "c039", "category": "multi", "query": "标题层级切分能保留什么？", "gold_evidence": ["doc_026", "doc_027"], "topic": "文档切分 Chunking"}
+{"case_id": "c040", "category": "single", "query": "片段粒度会怎样影响检索召回？", "gold_evidence": ["doc_025"], "topic": "文档切分 Chunking"}
+{"case_id": "c041", "category": "out_of_kb", "query": "公司班车的发车时间是几点？", "gold_evidence": [], "topic": "文档切分 Chunking", "conflict_overlap": 0.0}
+{"case_id": "c042", "category": "conflict", "query": "按固定长度切分无需为表格和代码块做特殊处理吗？", "gold_evidence": [], "topic": "文档切分 Chunking", "conflict_overlap": 0.82}
+{"case_id": "c043", "category": "single", "query": "文本是怎么变成稠密向量的？", "gold_evidence": ["doc_029"], "topic": "Embedding 模型"}
+{"case_id": "c044", "category": "multi", "query": "Embedding 模型的向量维度一般是多少？", "gold_evidence": ["doc_030", "doc_031"], "topic": "Embedding 模型"}
+{"case_id": "c045", "category": "multi", "query": "向量维度越高会带来什么开销？", "gold_evidence": ["doc_030", "doc_031"], "topic": "Embedding 模型"}
+{"case_id": "c046", "category": "single", "query": "语义相近的文本在向量空间里会怎样？", "gold_evidence": ["doc_029"], "topic": "Embedding 模型"}
+{"case_id": "c047", "category": "out_of_kb", "query": "工会活动经费怎么申请？", "gold_evidence": [], "topic": "Embedding 模型", "conflict_overlap": 0.0}
+{"case_id": "c048", "category": "conflict", "query": "Embedding 模型在专业领域可以直接调用、无需微调吗？", "gold_evidence": [], "topic": "Embedding 模型", "conflict_overlap": 0.83}
+{"case_id": "c049", "category": "single", "query": "检索质量评估一般看哪些指标？", "gold_evidence": ["doc_033"], "topic": "检索质量评估"}
+{"case_id": "c050", "category": "multi", "query": "标注口径不一致会有什么后果？", "gold_evidence": ["doc_034", "doc_035"], "topic": "检索质量评估"}
+{"case_id": "c051", "category": "multi", "query": "线上检索效果为什么和离线指标不一致？", "gold_evidence": ["doc_034", "doc_035"], "topic": "检索质量评估"}
+{"case_id": "c052", "category": "single", "query": "为什么检索评估要看答案排在第几位？", "gold_evidence": ["doc_033"], "topic": "检索质量评估"}
+{"case_id": "c053", "category": "out_of_kb", "query": "下个月的团建去哪里？", "gold_evidence": [], "topic": "检索质量评估", "conflict_overlap": 0.0}
+{"case_id": "c054", "category": "conflict", "query": "NDCG 需要分级相关性标注吗？", "gold_evidence": [], "topic": "检索质量评估", "conflict_overlap": 0.86}
+{"case_id": "c055", "category": "single", "query": "检索优化通常从哪几处入手？", "gold_evidence": ["doc_037"], "topic": "检索优化手段"}
+{"case_id": "c056", "category": "multi", "query": "查询改写包含哪些手段？", "gold_evidence": ["doc_038", "doc_039"], "topic": "检索优化手段"}
+{"case_id": "c057", "category": "multi", "query": "增加召回路数为什么会让上下文噪声变多？", "gold_evidence": ["doc_038", "doc_039"], "topic": "检索优化手段"}
+{"case_id": "c058", "category": "single", "query": "为什么检索优化要先解决召不到的问题？", "gold_evidence": ["doc_037"], "topic": "检索优化手段"}
+{"case_id": "c059", "category": "out_of_kb", "query": "个人所得税怎么申报？", "gold_evidence": [], "topic": "检索优化手段", "conflict_overlap": 0.0}
+{"case_id": "c060", "category": "conflict", "query": "扩大 top_k 会让噪声和延迟增加吗？", "gold_evidence": [], "topic": "检索优化手段", "conflict_overlap": 0.81}
+{"case_id": "c061", "category": "single", "query": "Function Calling 里工具到底由谁执行？", "gold_evidence": ["doc_041"], "topic": "Function Calling 工具调用"}
+{"case_id": "c062", "category": "single", "query": "Function Calling 解决了什么问题？", "gold_evidence": ["doc_041"], "topic": "Function Calling 工具调用"}
+{"case_id": "c063", "category": "multi", "query": "怎么让模型更少选错工具？", "gold_evidence": ["doc_042", "doc_043"], "topic": "Function Calling 工具调用"}
+{"case_id": "c064", "category": "multi", "query": "模型调用工具时常见的错误有哪些？", "gold_evidence": ["doc_042", "doc_043"], "topic": "Function Calling 工具调用"}
+{"case_id": "c065", "category": "out_of_kb", "query": "明天上海的天气怎么样？", "gold_evidence": [], "topic": "Function Calling 工具调用", "conflict_overlap": 0.17}
+{"case_id": "c066", "category": "conflict", "query": "模型会自己直接执行工具吗？", "gold_evidence": [], "topic": "Function Calling 工具调用", "conflict_overlap": 0.75}
+{"case_id": "c067", "category": "single", "query": "ReAct 的核心机制是什么？", "gold_evidence": ["doc_045"], "topic": "ReAct Agent 框架"}
+{"case_id": "c068", "category": "multi", "query": "ReAct 的循环为什么要用固定标签？", "gold_evidence": ["doc_046", "doc_047"], "topic": "ReAct Agent 框架"}
+{"case_id": "c069", "category": "multi", "query": "ReAct 适合处理什么任务？", "gold_evidence": ["doc_046", "doc_047"], "topic": "ReAct Agent 框架"}
+{"case_id": "c070", "category": "multi", "query": "ReAct 和先规划再执行的思路有什么区别？", "gold_evidence": ["doc_045", "doc_046", "doc_047"], "topic": "ReAct Agent 框架"}
+{"case_id": "c071", "category": "out_of_kb", "query": "红烧肉怎么做才好吃？", "gold_evidence": [], "topic": "ReAct Agent 框架", "conflict_overlap": 0.0}
+{"case_id": "c072", "category": "conflict", "query": "ReAct 每一步都需要产生推理吗？", "gold_evidence": [], "topic": "ReAct Agent 框架", "conflict_overlap": 0.94}
+{"case_id": "c073", "category": "single", "query": "LangGraph 是怎么编排流程的？", "gold_evidence": ["doc_049"], "topic": "状态机编排（LangGraph）"}
+{"case_id": "c074", "category": "multi", "query": "LangGraph 的状态持久化有什么用？", "gold_evidence": ["doc_050", "doc_051"], "topic": "状态机编排（LangGraph）"}
+{"case_id": "c075", "category": "multi", "query": "条件边解决的是什么问题？", "gold_evidence": ["doc_050", "doc_051"], "topic": "状态机编排（LangGraph）"}
+{"case_id": "c076", "category": "multi", "query": "LangGraph 如何让 Agent 流程变得可控？", "gold_evidence": ["doc_049", "doc_050", "doc_051"], "topic": "状态机编排（LangGraph）"}
+{"case_id": "c077", "category": "out_of_kb", "query": "去日本旅游需要办什么签证？", "gold_evidence": [], "topic": "状态机编排（LangGraph）", "conflict_overlap": 0.2}
+{"case_id": "c078", "category": "conflict", "query": "LangGraph 的节点流转需要预先定义边吗？", "gold_evidence": [], "topic": "状态机编排（LangGraph）", "conflict_overlap": 0.9}
+{"case_id": "c079", "category": "single", "query": "工具网关主要负责哪些事情？", "gold_evidence": ["doc_053"], "topic": "工具网关设计"}
+{"case_id": "c080", "category": "multi", "query": "工具是怎么注册到网关里的？", "gold_evidence": ["doc_054", "doc_055"], "topic": "工具网关设计"}
+{"case_id": "c081", "category": "multi", "query": "把工具都收进网关有什么收益？", "gold_evidence": ["doc_054", "doc_055"], "topic": "工具网关设计"}
+{"case_id": "c082", "category": "multi", "query": "Agent 调用工具为什么要经过网关而不是直连？", "gold_evidence": ["doc_053", "doc_054", "doc_055"], "topic": "工具网关设计"}
+{"case_id": "c083", "category": "out_of_kb", "query": "感冒了应该吃什么药？", "gold_evidence": [], "topic": "工具网关设计", "conflict_overlap": 0.0}
+{"case_id": "c084", "category": "conflict", "query": "鉴权与限流应该由工具网关负责吗？", "gold_evidence": [], "topic": "工具网关设计", "conflict_overlap": 0.8}
+{"case_id": "c085", "category": "single", "query": "什么是幂等？", "gold_evidence": ["doc_057"], "topic": "幂等性设计"}
+{"case_id": "c086", "category": "multi", "query": "幂等键一般由哪些部分拼成？", "gold_evidence": ["doc_058", "doc_059"], "topic": "幂等性设计"}
+{"case_id": "c087", "category": "multi", "query": "为什么写类接口必须幂等？", "gold_evidence": ["doc_058", "doc_059"], "topic": "幂等性设计"}
+{"case_id": "c088", "category": "multi", "query": "幂等能避免哪些线上事故？", "gold_evidence": ["doc_057", "doc_058", "doc_059"], "topic": "幂等性设计"}
+{"case_id": "c089", "category": "out_of_kb", "query": "钢琴考级一共分几级？", "gold_evidence": [], "topic": "幂等性设计", "conflict_overlap": 0.0}
+{"case_id": "c090", "category": "conflict", "query": "幂等键需要带任务 ID 吗？", "gold_evidence": [], "topic": "幂等性设计", "conflict_overlap": 0.91}
+{"case_id": "c091", "category": "single", "query": "HITL 在 Agent 里解决什么问题？", "gold_evidence": ["doc_061"], "topic": "权限模型与高危审批 HITL"}
+{"case_id": "c092", "category": "multi", "query": "工具的风险等级是怎么划分的？", "gold_evidence": ["doc_062", "doc_063"], "topic": "权限模型与高危审批 HITL"}
+{"case_id": "c093", "category": "multi", "query": "人工审批一直没人处理会怎样？", "gold_evidence": ["doc_062", "doc_063"], "topic": "权限模型与高危审批 HITL"}
+{"case_id": "c094", "category": "multi", "query": "哪些操作需要停下来等人确认？", "gold_evidence": ["doc_061", "doc_062", "doc_063"], "topic": "权限模型与高危审批 HITL"}
+{"case_id": "c095", "category": "out_of_kb", "query": "世界杯上一届的冠军是哪个队？", "gold_evidence": [], "topic": "权限模型与高危审批 HITL", "conflict_overlap": 0.0}
+{"case_id": "c096", "category": "conflict", "query": "高危操作需要人工确认吗？", "gold_evidence": [], "topic": "权限模型与高危审批 HITL", "conflict_overlap": 0.91}
+{"case_id": "c097", "category": "single", "query": "Agent 失败了怎么定位原因？", "gold_evidence": ["doc_065"], "topic": "Agent 失败归因"}
+{"case_id": "c098", "category": "multi", "query": "做失败归因需要采集哪些数据？", "gold_evidence": ["doc_066", "doc_067"], "topic": "Agent 失败归因"}
+{"case_id": "c099", "category": "multi", "query": "归因结果怎么指导后续优化动作？", "gold_evidence": ["doc_066", "doc_067"], "topic": "Agent 失败归因"}
+{"case_id": "c100", "category": "multi", "query": "归因和上下文质量是什么关系？", "gold_evidence": ["doc_065", "doc_066", "doc_067"], "topic": "Agent 失败归因"}
+{"case_id": "c101", "category": "out_of_kb", "query": "阳台上的绿萝叶子发黄怎么处理？", "gold_evidence": [], "topic": "Agent 失败归因", "conflict_overlap": 0.0}
+{"case_id": "c102", "category": "conflict", "query": "失败归因需要拆解中间步骤吗？", "gold_evidence": [], "topic": "Agent 失败归因", "conflict_overlap": 0.92}
+{"case_id": "c103", "category": "single", "query": "多 Agent 协作是怎么分工的？", "gold_evidence": ["doc_069"], "topic": "多 Agent 协作"}
+{"case_id": "c104", "category": "multi", "query": "多 Agent 有哪些常见的协作拓扑？", "gold_evidence": ["doc_070", "doc_071"], "topic": "多 Agent 协作"}
+{"case_id": "c105", "category": "multi", "query": "多 Agent 系统为什么容易把上下文撑爆？", "gold_evidence": ["doc_070", "doc_071"], "topic": "多 Agent 协作"}
+{"case_id": "c106", "category": "multi", "query": "多 Agent 适合什么任务，怎么控制开销？", "gold_evidence": ["doc_069", "doc_070", "doc_071"], "topic": "多 Agent 协作"}
+{"case_id": "c107", "category": "out_of_kb", "query": "从北京到上海的高铁要坐多久？", "gold_evidence": [], "topic": "多 Agent 协作", "conflict_overlap": 0.08}
+{"case_id": "c108", "category": "conflict", "query": "多 Agent 之间需要传递完整对话历史吗？", "gold_evidence": [], "topic": "多 Agent 协作", "conflict_overlap": 0.84}
+{"case_id": "c109", "category": "single", "query": "Token 预算该怎么分配？", "gold_evidence": ["doc_073"], "topic": "Token 预算与成本控制"}
+{"case_id": "c110", "category": "multi", "query": "为什么上下文越长调用成本越高？", "gold_evidence": ["doc_074", "doc_075"], "topic": "Token 预算与成本控制"}
+{"case_id": "c111", "category": "multi", "query": "有哪些降低 token 成本的办法？", "gold_evidence": ["doc_074", "doc_075"], "topic": "Token 预算与成本控制"}
+{"case_id": "c112", "category": "single", "query": "预算不够时应该先裁掉哪部分？", "gold_evidence": ["doc_073"], "topic": "Token 预算与成本控制"}
+{"case_id": "c113", "category": "out_of_kb", "query": "最近有什么好看的科幻电影？", "gold_evidence": [], "topic": "Token 预算与成本控制", "conflict_overlap": 0.0}
+{"case_id": "c114", "category": "conflict", "query": "输入上下文需要设 token 上限吗？", "gold_evidence": [], "topic": "Token 预算与成本控制", "conflict_overlap": 0.93}
+{"case_id": "c115", "category": "single", "query": "什么是 Agent 死循环？", "gold_evidence": ["doc_077"], "topic": "死循环检测与约束"}
+{"case_id": "c116", "category": "multi", "query": "有哪些手段能打断 Agent 的死循环？", "gold_evidence": ["doc_077", "doc_078", "doc_079"], "topic": "死循环检测与约束"}
+{"case_id": "c117", "category": "multi", "query": "循环约束一般会设置哪些阈值？", "gold_evidence": ["doc_078", "doc_079"], "topic": "死循环检测与约束"}
+{"case_id": "c118", "category": "multi", "query": "换个参数重复调用同一工具该怎么发现？", "gold_evidence": ["doc_078", "doc_079"], "topic": "死循环检测与约束"}
+{"case_id": "c119", "category": "out_of_kb", "query": "公司年假有多少天？", "gold_evidence": [], "topic": "死循环检测与约束", "conflict_overlap": 0.0}
+{"case_id": "c120", "category": "conflict", "query": "只限制最大步数能防止死循环吗？", "gold_evidence": [], "topic": "死循环检测与约束", "conflict_overlap": 0.71}
+{"case_id": "c121", "category": "single", "query": "Prompt 工程究竟在解决什么问题？", "gold_evidence": ["doc_081"], "topic": "Prompt 工程"}
+{"case_id": "c122", "category": "multi", "query": "Few-shot 提示是怎么锚定输出格式的？", "gold_evidence": ["doc_082", "doc_083"], "topic": "Prompt 工程"}
+{"case_id": "c123", "category": "multi", "query": "用思维链提示有什么代价？", "gold_evidence": ["doc_082", "doc_083"], "topic": "Prompt 工程"}
+{"case_id": "c124", "category": "single", "query": "为什么提示词写得含糊会导致答非所问？", "gold_evidence": ["doc_081"], "topic": "Prompt 工程"}
+{"case_id": "c125", "category": "out_of_kb", "query": "员工报销流程是怎样的？", "gold_evidence": [], "topic": "Prompt 工程", "conflict_overlap": 0.1}
+{"case_id": "c126", "category": "conflict", "query": "思维链提示需要额外的推理 token 吗？", "gold_evidence": [], "topic": "Prompt 工程", "conflict_overlap": 0.94}
+{"case_id": "c127", "category": "single", "query": "上下文工程包含哪些内容？", "gold_evidence": ["doc_085"], "topic": "上下文工程"}
+{"case_id": "c128", "category": "multi", "query": "上下文组装一般怎么做？", "gold_evidence": ["doc_086", "doc_087"], "topic": "上下文工程"}
+{"case_id": "c129", "category": "multi", "query": "上下文里塞太多无关证据有什么坏处？", "gold_evidence": ["doc_086", "doc_087"], "topic": "上下文工程"}
+{"case_id": "c130", "category": "single", "query": "为什么要在有限的 token 预算内做取舍？", "gold_evidence": ["doc_085"], "topic": "上下文工程"}
+{"case_id": "c131", "category": "out_of_kb", "query": "外地车牌进市区需要办什么手续？", "gold_evidence": [], "topic": "上下文工程", "conflict_overlap": 0.25}
+{"case_id": "c132", "category": "conflict", "query": "上下文工程需要做预算分配和裁剪吗？", "gold_evidence": [], "topic": "上下文工程", "conflict_overlap": 0.88}
+{"case_id": "c133", "category": "single", "query": "Lost in the Middle 描述的是什么现象？", "gold_evidence": ["doc_089"], "topic": "Lost in the Middle 位置偏差"}
+{"case_id": "c134", "category": "multi", "query": "怎么缓解位置偏差？", "gold_evidence": ["doc_090", "doc_091"], "topic": "Lost in the Middle 位置偏差"}
+{"case_id": "c135", "category": "multi", "query": "上下文越长，位置偏差会更严重吗？", "gold_evidence": ["doc_090", "doc_091"], "topic": "Lost in the Middle 位置偏差"}
+{"case_id": "c136", "category": "single", "query": "为什么关键证据放在中间容易被忽略？", "gold_evidence": ["doc_089"], "topic": "Lost in the Middle 位置偏差"}
+{"case_id": "c137", "category": "out_of_kb", "query": "换驾照需要准备哪些材料？", "gold_evidence": [], "topic": "Lost in the Middle 位置偏差", "conflict_overlap": 0.22}
+{"case_id": "c138", "category": "conflict", "query": "需要重排证据顺序吗？", "gold_evidence": [], "topic": "Lost in the Middle 位置偏差", "conflict_overlap": 0.89}
+{"case_id": "c139", "category": "single", "query": "语义缓存是怎么工作的？", "gold_evidence": ["doc_093"], "topic": "语义缓存"}
+{"case_id": "c140", "category": "multi", "query": "相似度阈值设得太低会怎样？", "gold_evidence": ["doc_094", "doc_095"], "topic": "语义缓存"}
+{"case_id": "c141", "category": "multi", "query": "语义缓存适合用在哪些场景？", "gold_evidence": ["doc_094", "doc_095"], "topic": "语义缓存"}
+{"case_id": "c142", "category": "single", "query": "为什么命中缓存后可以跳过检索和生成？", "gold_evidence": ["doc_093"], "topic": "语义缓存"}
+{"case_id": "c143", "category": "out_of_kb", "query": "我寄的快递一直没到，怎么投诉？", "gold_evidence": [], "topic": "语义缓存", "conflict_overlap": 0.09}
+{"case_id": "c144", "category": "conflict", "query": "语义缓存是靠字面字符串比对来判断问题是否等价吗？", "gold_evidence": [], "topic": "语义缓存", "conflict_overlap": 0.8}
+{"case_id": "c145", "category": "single", "query": "为什么大模型接口能一个字一个字地吐结果？", "gold_evidence": ["doc_097"], "topic": "SSE 流式输出"}
+{"case_id": "c146", "category": "multi", "query": "SSE 连接为什么会莫名断开？", "gold_evidence": ["doc_098", "doc_099"], "topic": "SSE 流式输出"}
+{"case_id": "c147", "category": "multi", "query": "SSE 和 WebSocket 之间该怎么选？", "gold_evidence": ["doc_098", "doc_099"], "topic": "SSE 流式输出"}
+{"case_id": "c148", "category": "single", "query": "SSE 建立在什么协议之上，数据是怎么下发的？", "gold_evidence": ["doc_097"], "topic": "SSE 流式输出"}
+{"case_id": "c149", "category": "out_of_kb", "query": "哪家银行的定期存款利率最高？", "gold_evidence": [], "topic": "SSE 流式输出", "conflict_overlap": 0.08}
+{"case_id": "c150", "category": "conflict", "query": "SSE 能实现客户端到服务端的消息回传吗？", "gold_evidence": [], "topic": "SSE 流式输出", "conflict_overlap": 0.94}
+{"case_id": "c151", "category": "single", "query": "Ragas 是用来评测什么的？", "gold_evidence": ["doc_101"], "topic": "RAG 评测框架 Ragas"}
+{"case_id": "c152", "category": "multi", "query": "Ragas 的忠实度指标是怎么算出来的？", "gold_evidence": ["doc_102", "doc_103"], "topic": "RAG 评测框架 Ragas"}
+{"case_id": "c153", "category": "multi", "query": "用 Ragas 做评测有什么代价？", "gold_evidence": ["doc_102", "doc_103"], "topic": "RAG 评测框架 Ragas"}
+{"case_id": "c154", "category": "single", "query": "RAG 的质量可以从哪些维度量化？", "gold_evidence": ["doc_101"], "topic": "RAG 评测框架 Ragas"}
+{"case_id": "c155", "category": "out_of_kb", "query": "这周末有什么电影上映？", "gold_evidence": [], "topic": "RAG 评测框架 Ragas", "conflict_overlap": 0.0}
+{"case_id": "c156", "category": "conflict", "query": "Ragas 的指标是规则计算，还是靠大模型裁判？", "gold_evidence": [], "topic": "RAG 评测框架 Ragas", "conflict_overlap": 0.84}
+{"case_id": "c157", "category": "single", "query": "QLoRA 是怎么在单卡上微调大模型的？", "gold_evidence": ["doc_105"], "topic": "QLoRA 微调"}
+{"case_id": "c158", "category": "multi", "query": "QLoRA 里有哪些省显存的手段？", "gold_evidence": ["doc_106", "doc_107"], "topic": "QLoRA 微调"}
+{"case_id": "c159", "category": "multi", "query": "QLoRA 和 16-bit LoRA 的效果差多少？", "gold_evidence": ["doc_106", "doc_107"], "topic": "QLoRA 微调"}
+{"case_id": "c160", "category": "single", "query": "为什么要先把基座模型量化成 4-bit？", "gold_evidence": ["doc_105"], "topic": "QLoRA 微调"}
+{"case_id": "c161", "category": "out_of_kb", "query": "健身房年卡一般多少钱？", "gold_evidence": [], "topic": "QLoRA 微调", "conflict_overlap": 0.0}
+{"case_id": "c162", "category": "conflict", "query": "QLoRA 的 4-bit 量化能降低训练显存吗？", "gold_evidence": [], "topic": "QLoRA 微调", "conflict_overlap": 0.95}
+{"case_id": "c163", "category": "single", "query": "GGUF 文件和传统权重文件有什么区别？", "gold_evidence": ["doc_109"], "topic": "GGUF 量化部署"}
+{"case_id": "c164", "category": "multi", "query": "本地怎么加载 GGUF 模型？", "gold_evidence": ["doc_110", "doc_111"], "topic": "GGUF 量化部署"}
+{"case_id": "c165", "category": "multi", "query": "量化等级选低一点有什么风险？", "gold_evidence": ["doc_110", "doc_111"], "topic": "GGUF 量化部署"}
+{"case_id": "c166", "category": "single", "query": "为什么 GGUF 适合本地部署？", "gold_evidence": ["doc_109"], "topic": "GGUF 量化部署"}
+{"case_id": "c167", "category": "out_of_kb", "query": "明天的航班取消了怎么改签？", "gold_evidence": [], "topic": "GGUF 量化部署", "conflict_overlap": 0.1}
+{"case_id": "c168", "category": "conflict", "query": "GGUF 的量化等级需要在体积和精度之间取舍吗？", "gold_evidence": [], "topic": "GGUF 量化部署", "conflict_overlap": 0.86}
+{"case_id": "c169", "category": "single", "query": "可观测性的三根支柱分别回答什么问题？", "gold_evidence": ["doc_113"], "topic": "可观测性三支柱"}
+{"case_id": "c170", "category": "multi", "query": "三支柱一般用什么工具落地？", "gold_evidence": ["doc_114", "doc_115"], "topic": "可观测性三支柱"}
+{"case_id": "c171", "category": "multi", "query": "埋点铺得太开会带来什么代价？", "gold_evidence": ["doc_114", "doc_115"], "topic": "可观测性三支柱"}
+{"case_id": "c172", "category": "single", "query": "为什么只靠日志很难定位跨服务故障？", "gold_evidence": ["doc_113"], "topic": "可观测性三支柱"}
+{"case_id": "c173", "category": "out_of_kb", "query": "这个月的水电费在哪里交？", "gold_evidence": [], "topic": "可观测性三支柱", "conflict_overlap": 0.0}
+{"case_id": "c174", "category": "conflict", "query": "可观测性只需要指标和日志两根支柱吗？", "gold_evidence": [], "topic": "可观测性三支柱", "conflict_overlap": 0.94}
+{"case_id": "c175", "category": "single", "query": "模型产生的幻觉具体指什么？", "gold_evidence": ["doc_117"], "topic": "大模型幻觉抑制"}
+{"case_id": "c176", "category": "multi", "query": "有哪些抑制幻觉的常见手段？", "gold_evidence": ["doc_118", "doc_119"], "topic": "大模型幻觉抑制"}
+{"case_id": "c177", "category": "multi", "query": "为什么不能完全信任模型自己给出的置信度？", "gold_evidence": ["doc_118", "doc_119"], "topic": "大模型幻觉抑制"}
+{"case_id": "c178", "category": "single", "query": "怎么让模型的回答有据可依、可追溯？", "gold_evidence": ["doc_117"], "topic": "大模型幻觉抑制"}
+{"case_id": "c179", "category": "out_of_kb", "query": "小区的停车位怎么租？", "gold_evidence": [], "topic": "大模型幻觉抑制", "conflict_overlap": 0.0}
+{"case_id": "c180", "category": "conflict", "query": "只要把温度调到 0 就能彻底消除幻觉吗？", "gold_evidence": [], "topic": "大模型幻觉抑制", "conflict_overlap": 0.94}
+{"case_id": "c181", "category": "single", "query": "多轮对话的上下文里都放了什么？", "gold_evidence": ["doc_121"], "topic": "多轮对话上下文管理"}
+{"case_id": "c182", "category": "multi", "query": "历史消息太多应该怎么处理？", "gold_evidence": ["doc_122", "doc_123"], "topic": "多轮对话上下文管理"}
+{"case_id": "c183", "category": "multi", "query": "为什么不能只保留最近几轮？", "gold_evidence": ["doc_122", "doc_123"], "topic": "多轮对话上下文管理"}
+{"case_id": "c184", "category": "multi", "query": "多轮场景下 token 预算怎么分配？", "gold_evidence": ["doc_121", "doc_122", "doc_123"], "topic": "多轮对话上下文管理"}
+{"case_id": "c185", "category": "out_of_kb", "query": "公司的打印机在哪里？", "gold_evidence": [], "topic": "多轮对话上下文管理", "conflict_overlap": 0.14}
+{"case_id": "c186", "category": "conflict", "query": "历史消息会占用 token 预算吗？", "gold_evidence": [], "topic": "多轮对话上下文管理", "conflict_overlap": 0.87}
+{"case_id": "c187", "category": "single", "query": "上下文压缩是什么？", "gold_evidence": ["doc_125"], "topic": "长上下文压缩"}
+{"case_id": "c188", "category": "multi", "query": "压缩比太高会产生什么问题？", "gold_evidence": ["doc_126", "doc_127"], "topic": "长上下文压缩"}
+{"case_id": "c189", "category": "multi", "query": "按位置裁剪有什么风险？", "gold_evidence": ["doc_126", "doc_127"], "topic": "长上下文压缩"}
+{"case_id": "c190", "category": "single", "query": "压缩之后还需要保留引用吗？", "gold_evidence": ["doc_125"], "topic": "长上下文压缩"}
+{"case_id": "c191", "category": "out_of_kb", "query": "怎么申请差旅报销？", "gold_evidence": [], "topic": "长上下文压缩", "conflict_overlap": 0.0}
+{"case_id": "c192", "category": "conflict", "query": "压缩是无损的吗？", "gold_evidence": [], "topic": "长上下文压缩", "conflict_overlap": 0.86}
+{"case_id": "c193", "category": "single", "query": "跨文档对比查询难在哪里？", "gold_evidence": ["doc_129"], "topic": "跨文档对比查询"}
+{"case_id": "c194", "category": "multi", "query": "只召回到一方会出现什么后果？", "gold_evidence": ["doc_130", "doc_131"], "topic": "跨文档对比查询"}
+{"case_id": "c195", "category": "multi", "query": "为什么对比查询对上下文组装更敏感？", "gold_evidence": ["doc_130", "doc_131"], "topic": "跨文档对比查询"}
+{"case_id": "c196", "category": "multi", "query": "对比查询要求成对召回吗？", "gold_evidence": ["doc_129", "doc_130", "doc_131"], "topic": "跨文档对比查询"}
+{"case_id": "c197", "category": "out_of_kb", "query": "附近有什么好吃的餐厅？", "gold_evidence": [], "topic": "跨文档对比查询", "conflict_overlap": 0.14}
+{"case_id": "c198", "category": "conflict", "query": "对比查询只召回一方就够了吗？", "gold_evidence": [], "topic": "跨文档对比查询", "conflict_overlap": 0.54}
+{"case_id": "c199", "category": "single", "query": "为什么检索结果里会出现互相矛盾的证据？", "gold_evidence": ["doc_133"], "topic": "知识时效性与版本冲突"}
+{"case_id": "c200", "category": "multi", "query": "怎么处理新旧文档并存的问题？", "gold_evidence": ["doc_134", "doc_135"], "topic": "知识时效性与版本冲突"}
+{"case_id": "c201", "category": "multi", "query": "文档没有时间字段该怎么办？", "gold_evidence": ["doc_134", "doc_135"], "topic": "知识时效性与版本冲突"}
+{"case_id": "c202", "category": "multi", "query": "同一属性有两种说法时怎么判断？", "gold_evidence": ["doc_133", "doc_134", "doc_135"], "topic": "知识时效性与版本冲突"}
+{"case_id": "c203", "category": "out_of_kb", "query": "入职体检要预约哪家医院？", "gold_evidence": [], "topic": "知识时效性与版本冲突", "conflict_overlap": 0.09}
+{"case_id": "c204", "category": "conflict", "query": "更新时会自动清除旧文档吗？", "gold_evidence": [], "topic": "知识时效性与版本冲突", "conflict_overlap": 0.92}

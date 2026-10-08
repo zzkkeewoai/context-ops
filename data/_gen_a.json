@@ -1,0 +1,172 @@
+[
+  {
+    "topic": "RAG 检索增强生成基础",
+    "docs": [
+      {"role": "gold", "text": "RAG 即检索增强生成，先从外部知识库召回相关文档，再把召回的证据作为上下文交给大模型生成答案。"},
+      {"role": "distractor", "text": "RAG 的召回阶段常并行执行向量检索与关键词检索两路，再由融合模块合并两路结果后送入组装。"},
+      {"role": "distractor", "text": "RAG 的常见失败模式是召回证据不足、召回内容与问题无关、以及在长上下文中忽略关键证据三类。"},
+      {"role": "conflict", "text": "RAG 的召回只需要向量检索一路即可，关键词检索与融合模块并不是必需的。"}
+    ],
+    "queries": [
+      {"q": "RAG 要把什么内容作为上下文交给大模型？", "expect": "answer", "gold": ["gold"]},
+      {"q": "外部知识库的文档是怎么进入 RAG 上下文的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "RAG 有哪些常见失败模式？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么 RAG 要在生成答案前先找资料？", "expect": "answer", "gold": ["gold"]},
+      {"q": "今天上海的天气怎么样？", "expect": "refuse", "gold": []},
+      {"q": "RAG 的召回需要关键词检索和融合模块吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "向量检索原理",
+    "docs": [
+      {"role": "gold", "text": "向量检索把文本编码成稠密向量，再用余弦相似度等度量计算查询向量与文档向量的距离，返回语义最相近的结果。"},
+      {"role": "distractor", "text": "向量检索常用 HNSW、IVF 等近似最近邻索引加速，用少量召回损失换取毫秒级的查询延迟。"},
+      {"role": "distractor", "text": "向量检索的效果依赖嵌入模型质量与索引参数，语料更新后需要重建索引才能覆盖新增文档。"},
+      {"role": "conflict", "text": "语料更新后 ANN 索引会自动增量更新，无需重建，也不会遗漏新增文档。"}
+    ],
+    "queries": [
+      {"q": "向量检索的相似度是怎么算的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "向量检索用 HNSW 加速近邻匹配的原理是什么？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "向量检索的效果依赖什么？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么要把文本编码成向量再比较？", "expect": "answer", "gold": ["gold"]},
+      {"q": "食堂的午餐几点开始供应？", "expect": "refuse", "gold": []},
+      {"q": "语料更新后 ANN 索引需要重建，还是会自动增量更新？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "向量数据库 Milvus",
+    "docs": [
+      {"role": "gold", "text": "Milvus 是开源分布式向量数据库，用 HNSW、IVF 等索引管理海量向量，为语义检索与 RAG 提供近邻查询。"},
+      {"role": "distractor", "text": "Milvus 生产集群需要独立部署查询节点、索引节点与协调组件，并按数据量规划分片与副本。"},
+      {"role": "distractor", "text": "Milvus 的查询性能受 nlist、nprobe 等索引参数影响，nprobe 越大召回越全，延迟也越高。"},
+      {"role": "conflict", "text": "Milvus 只支持 IVF 系列索引，无法使用 HNSW 图索引，近邻查询的精度因此受限。"}
+    ],
+    "queries": [
+      {"q": "Milvus 属于哪一类数据库？", "expect": "answer", "gold": ["gold"]},
+      {"q": "Milvus 生产集群怎么部署？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "Milvus 的查询性能受哪些参数影响？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "Milvus 在 RAG 里承担什么角色？", "expect": "answer", "gold": ["gold"]},
+      {"q": "员工年假有几天？", "expect": "refuse", "gold": []},
+      {"q": "Milvus 支持 HNSW 图索引做近邻查询吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "混合检索 BM25",
+    "docs": [
+      {"role": "gold", "text": "BM25 是关键词检索的经典排序函数，按词频与逆文档频率加权，并用文档长度归一化抑制长文档的分数虚高。"},
+      {"role": "distractor", "text": "BM25 的两个可调参数 k1 与 b 分别控制词频饱和程度与长度归一化强度，工程上常取 1.2 和 0.75。"},
+      {"role": "distractor", "text": "BM25 对精确术语、型号与专有名词的匹配很稳，但同义词改写与口语化提问容易漏召。"},
+      {"role": "conflict", "text": "BM25 仅需调 k1 一个参数，b 参数无需设置，长度归一化默认关闭。"}
+    ],
+    "queries": [
+      {"q": "BM25 的排序分数是怎么算出来的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "BM25 为什么能压低长文档的分数？", "expect": "answer", "gold": ["gold"]},
+      {"q": "BM25 对精确术语和型号的匹配效果如何？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "BM25 为什么会在口语化提问下漏召回？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "明天股市会涨还是跌？", "expect": "refuse", "gold": []},
+      {"q": "BM25 需要设置 b 参数做长度归一化吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "RRF 融合",
+    "docs": [
+      {"role": "gold", "text": "RRF 即倒数排名融合，把多路检索结果按 1/(k+rank) 累加打分，其权重仅由名次决定，与各路分数的量纲无关。"},
+      {"role": "distractor", "text": "RRF 中的 k 是平滑常数，取值越大越削弱头部排名优势，工程上常取 60。"},
+      {"role": "distractor", "text": "RRF 适合融合量纲不可比的召回源，但对只有一路召回质量极高的情况收益有限。"},
+      {"role": "conflict", "text": "RRF 的平滑常数仅需取 1，因为 60 压平候选之间的名次分差。"}
+    ],
+    "queries": [
+      {"q": "RRF 是怎么把多路检索结果合成一个排序的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "RRF 为什么只按排名累加就行？", "expect": "answer", "gold": ["gold"]},
+      {"q": "RRF 里的 k 取值多大会削弱头部优势？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "RRF 适合什么样的召回源组合？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "附近哪家医院可以挂号？", "expect": "refuse", "gold": []},
+      {"q": "RRF 的平滑常数取 60 会把名次分差压平吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "Rerank 重排",
+    "docs": [
+      {"role": "gold", "text": "Rerank 用交叉编码器对查询与候选文档逐对打分，按精排分数重新排序，把真正相关的证据顶到前面。"},
+      {"role": "distractor", "text": "Rerank 的耗时随候选数量增长，工程上通常先召回 50 至 100 条，再精排到前 5 条。"},
+      {"role": "distractor", "text": "Rerank 一般放在召回之后、上下文组装之前，用来修正双塔模型因交互不足产生的排序偏差。"},
+      {"role": "conflict", "text": "Rerank 只支持双塔向量打分，无需让查询与文档逐对交互。"}
+    ],
+    "queries": [
+      {"q": "Rerank 是怎么重新排序候选证据的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "Rerank 的耗时和候选数量有什么关系？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "Rerank 一般放在检索流程的哪个位置？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "Rerank 的精排分数为什么比召回分数更可信？", "expect": "answer", "gold": ["gold"]},
+      {"q": "怎么办理出国签证？", "expect": "refuse", "gold": []},
+      {"q": "Rerank 需要让查询和文档逐对交互吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "文档切分 Chunking",
+    "docs": [
+      {"role": "gold", "text": "Chunking 把长文档切成若干语义完整的片段再入库，片段粒度直接决定检索召回与上下文证据的质量。"},
+      {"role": "distractor", "text": "Chunking 常用 256 至 512 token 的片段长度，并保留 10%~20% 的重叠窗口以维持语义连贯。"},
+      {"role": "distractor", "text": "按标题层级切分能保留章节语义，按固定长度切分容易切断表格与代码块的结构。"},
+      {"role": "conflict", "text": "文本切分仅需按固定长度处理，表格与代码块无需特殊照顾。"}
+    ],
+    "queries": [
+      {"q": "为什么要对长文档做 Chunking？", "expect": "answer", "gold": ["gold"]},
+      {"q": "Chunking 的片段一般取多长，重叠比例多少？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "标题层级切分能保留什么？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "片段粒度会怎样影响检索召回？", "expect": "answer", "gold": ["gold"]},
+      {"q": "公司班车的发车时间是几点？", "expect": "refuse", "gold": []},
+      {"q": "按固定长度切分无需为表格和代码块做特殊处理吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "Embedding 模型",
+    "docs": [
+      {"role": "gold", "text": "Embedding 模型把文本映射成稠密向量，让语义相近的文本在向量空间中距离更近，是语义检索的基础。"},
+      {"role": "distractor", "text": "Embedding 模型的向量维度常见 768 与 1024，维度越高表达能力越强，显存与存储开销也越大。"},
+      {"role": "distractor", "text": "通用 Embedding 模型在专业领域常需用对比学习微调，正负样本质量决定微调后的检索效果。"},
+      {"role": "conflict", "text": "通用 Embedding 模型仅需直接调用，专业领域无需微调。"}
+    ],
+    "queries": [
+      {"q": "文本是怎么变成稠密向量的？", "expect": "answer", "gold": ["gold"]},
+      {"q": "Embedding 模型的向量维度一般是多少？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "向量维度越高会带来什么开销？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "语义相近的文本在向量空间里会怎样？", "expect": "answer", "gold": ["gold"]},
+      {"q": "工会活动经费怎么申请？", "expect": "refuse", "gold": []},
+      {"q": "Embedding 模型在专业领域可以直接调用、无需微调吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "检索质量评估",
+    "docs": [
+      {"role": "gold", "text": "检索质量评估常用 Recall@k 与 MRR、NDCG 等排序指标，衡量标准答案是否被召回以及排在第几位。"},
+      {"role": "distractor", "text": "检索评估需要人工标注查询与文档的相关性等级，标注口径不一致会让指标失去可比性。"},
+      {"role": "distractor", "text": "线上检索效果还要看点击率、首条采纳率与拒答率，离线指标好并不等于线上体验好。"},
+      {"role": "conflict", "text": "NDCG 仅需二元相关性标注，无需分级标注。"}
+    ],
+    "queries": [
+      {"q": "检索质量评估一般看哪些指标？", "expect": "answer", "gold": ["gold"]},
+      {"q": "标注口径不一致会有什么后果？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "线上检索效果为什么和离线指标不一致？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么检索评估要看答案排在第几位？", "expect": "answer", "gold": ["gold"]},
+      {"q": "下个月的团建去哪里？", "expect": "refuse", "gold": []},
+      {"q": "NDCG 需要分级相关性标注吗？", "expect": "refuse", "gold": []}
+    ]
+  },
+  {
+    "topic": "检索优化手段",
+    "docs": [
+      {"role": "gold", "text": "检索优化通常从查询改写、召回多路化与重排三处入手，先解决召不到，再解决排不准。"},
+      {"role": "distractor", "text": "查询改写包含同义扩展、指代消解与 HyDE 假设文档生成，用来缩小口语提问与文档用词的差距。"},
+      {"role": "distractor", "text": "扩大 top_k 与增加召回路数能提升命中率，代价是重排压力与上下文噪声同步上升。"},
+      {"role": "conflict", "text": "扩大 top_k 仅需调到 500，噪声与延迟不会增加。"}
+    ],
+    "queries": [
+      {"q": "检索优化通常从哪几处入手？", "expect": "answer", "gold": ["gold"]},
+      {"q": "查询改写包含哪些手段？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "增加召回路数为什么会让上下文噪声变多？", "expect": "answer", "gold": ["distractor"]},
+      {"q": "为什么检索优化要先解决召不到的问题？", "expect": "answer", "gold": ["gold"]},
+      {"q": "个人所得税怎么申报？", "expect": "refuse", "gold": []},
+      {"q": "扩大 top_k 会让噪声和延迟增加吗？", "expect": "refuse", "gold": []}
+    ]
+  }
+]

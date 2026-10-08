@@ -63,6 +63,7 @@ def print_metrics_table(results: dict):
         ("accuracy", "准确率"),
         ("over_refusal_rate", "过拒率 ↓"),
         ("missed_refusal_rate", "漏拒率 ↓"),
+        ("missed_conflict_rate", "漏检冲突率 ↓"),
         ("avg_tokens_in", "平均输入 token"),
         ("p95_latency_ms", "P95 延迟(ms)"),
     ]
