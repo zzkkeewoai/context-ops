@@ -26,14 +26,22 @@ from schemas import ContextSnapshot, DropReason  # noqa: E402
 
 
 class FailureType(str, Enum):
-    """失败类型（+ 两种成功状态）"""
+    """失败类型（+ 三种成功/失败边界状态）
+
+    拒答相关的两类单独列出，因为**它们的代价不对称**，混进 generation_error 就看不出方向：
+        OVER_REFUSAL  该答却拒答 → 用户拿不到答案（可用性损失）
+        MISSED_REFUSAL 该拒却答了 → 模型基于无关证据硬答（幻觉，代价更大）
+    只报一个"准确率"会把这两种反向错误抵消掉，等于什么都没说。
+    """
 
     CORRECT = "correct"                              # 正确回答
-    CORRECT_REFUSAL = "correct_refusal"              # 正确拒答（知识库外的问题）
+    CORRECT_REFUSAL = "correct_refusal"              # 正确拒答（库外问题 / 证据冲突）
     NOT_RETRIEVED = "not_retrieved"                  # ① 检索没召回
     RETRIEVED_NOT_SELECTED = "retrieved_not_selected"  # ② 召回但未入选
     SELECTED_NOT_USED = "selected_not_used"          # ③ 入选但未被使用
-    GENERATION_ERROR = "generation_error"            # ④ 生成错误（含"该拒答却乱答"）
+    GENERATION_ERROR = "generation_error"            # ④ 生成错误（证据没问题，答案还是错）
+    OVER_REFUSAL = "over_refusal"                    # 过拒：本可回答却拒答（可用性损失）
+    MISSED_REFUSAL = "missed_refusal"                # 漏拒：本应拒答却作答（幻觉风险）
 
 
 @dataclass
@@ -68,17 +76,42 @@ def attribute(snapshot: ContextSnapshot, case: Dict) -> Attribution:
     gold_in_selected = bool(gold_set & selected_ids)
     gold_cited = bool(gold_set & cited_ids)
 
-    # ---------- 成功情形 ----------
+    # ---------- 先判定"拒答"这个动作对不对 ----------
+    # 为什么放在最前面：拒答是二值动作，且两类错误代价不对称、方向相反，
+    # 必须在进入"哪一环出错"的细分之前先定性，否则会被 generation_error 吞掉。
     if not gold:
-        # 知识库外的问题：正确行为是拒答
+        # 该拒答的问题（知识库外 / 证据互相冲突）
         if snapshot.answer.refused:
-            return Attribution(case_id, FailureType.CORRECT_REFUSAL, "库外问题正确拒答")
+            return Attribution(
+                case_id, FailureType.CORRECT_REFUSAL, "该拒答的问题正确拒答"
+            )
         return Attribution(
             case_id,
-            FailureType.GENERATION_ERROR,
-            "库外问题本应拒答，却给出了答案（生成侧未守住边界）",
+            FailureType.MISSED_REFUSAL,
+            "本应拒答却给出了答案（漏拒 → 幻觉风险）：生成侧没守住边界，"
+            "说明校验器的相关性阈值偏低或缺失",
             gold_in_candidates=False,
             gold_in_selected=False,
+            gold_cited=False,
+        )
+
+    if snapshot.answer.refused:
+        # 该回答却拒答了 —— 过拒，用户什么也拿不到
+        hint = (
+            "证据其实都已就位，问题在校验器【阈值过严】"
+            if gold_in_selected
+            else (
+                "证据在候选里但没进上下文，属组装阶段被裁"
+                if gold_in_candidates
+                else "证据压根没被召回，属检索阶段的问题"
+            )
+        )
+        return Attribution(
+            case_id,
+            FailureType.OVER_REFUSAL,
+            f"本可回答却拒答（过拒 → 可用性损失）：{hint}",
+            gold_in_candidates=gold_in_candidates,
+            gold_in_selected=gold_in_selected,
             gold_cited=False,
         )
 

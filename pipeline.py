@@ -5,7 +5,13 @@
 后续所有优化都是**替换其中某一环**，而不是重写整个系统。
 
 链路：
-    query → ①检索 → ②上下文组装 → ③生成 → ④引用检测 → ⑤快照落库
+    query → ①检索 → ②上下文组装 → ②'校验 → ③生成 → ④引用检测 → ⑤快照落库
+
+关于 ②' 校验的位置（v2 新增，重要）：
+    校验必须在【生成之前】，而不是让生成器自己判断"该不该答"。
+    早先的实现把拒答判断写在 MockGenerator 里（max_relevance < FLOOR 就拒答），
+    结果是：校验逻辑和生成逻辑缠在一起，校验器自己的准确率永远测不出来。
+    独立成模块后，"该拒的拒了没 / 不该拒的放行了没" 才能被单独评测。
 """
 import hashlib
 import json
@@ -17,11 +23,21 @@ from typing import Dict, List, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from context_builder import ContextStrategy, estimate_tokens  # noqa: E402
+from context_builder import (  # noqa: E402
+    ContextStrategy,
+    estimate_tokens,
+    render_evidence,
+)
+from context_validator import ContextValidator, extract_features, relevance  # noqa: E402
 from schemas import (  # noqa: E402
     AnswerInfo,
+    Budget,
+    BuildResult,
     Candidate,
     ContextSnapshot,
+    DropReason,
+    Dropped,
+    Evidence,
     GenerationInfo,
 )
 
@@ -103,12 +119,19 @@ class MockGenerator:
          这就是 A/B 对比能出效果差异的原因。
 
     真实场景替换为 LLM 调用，接口（generate）不变。
+
+    【职责边界 —— v2 修正】
+        本类**不再判断"该不该拒答"**。早先版本里有 `RELEVANCE_FLOOR`，
+        低于它就返回拒答 —— 那是把"能不能答"的判断塞进了"怎么答"的模块里，
+        导致校验逻辑无法单独评测。
+        现在的分工：
+            ContextValidator 决定 pass / rebuild / refuse
+            MockGenerator     只在 pass 之后负责"从已有证据里选一条来组织答案"
+        唯一保留的拒答分支是"证据为空"——那是"没得答"，不是"判断能不能答"。
     """
 
     # 中间位置（30%~70%）的注意力衰减系数
     MIDDLE_PENALTY = 0.3
-    # 资料相关性下限：低于此值认为"知识库里根本没有相关内容" → 拒答
-    RELEVANCE_FLOOR = 0.3
 
     @staticmethod
     def _relevance(query: str, text: str) -> float:
@@ -120,37 +143,30 @@ class MockGenerator:
         return hit / len(q_chars)
 
     def generate(self, query: str, evidence) -> AnswerInfo:
-        """生成答案。
+        """生成答案（前置条件：Validator 已判定证据充分）。
 
-        关键：**位置惩罚只影响"选哪条证据"，不影响"是否拒答"**。
-          · 所有证据都不相关（max_relevance < FLOOR）→ 拒答（知识库没有）
-          · 有相关证据但选错（最相关的那条被位置惩罚压下去）→ 答错
-        这样才能区分"该拒答"和"答错"两种失败，归因器才有意义。
+        核心行为：**位置惩罚只影响"选哪条证据"**。
+          · 最相关的证据若落在上下文中间，会被位置惩罚压下去 → 答错
+          · 首尾优先排列把最相关的放到头尾 → 答对
+        这正是 A/B 对比能出效果差异的来源。
         """
         if not evidence:
-            return AnswerInfo(text="当前资料不足，无法回答。", cited_evidence=[], refused=True)
+            return AnswerInfo(text="未检索到任何相关资料。", cited_evidence=[], refused=True)
 
         n = len(evidence)
         chosen = None
         best_weight = -1.0
-        max_relevance = 0.0
 
         for e in evidence:
             pos_ratio = e.position / max(1, n - 1)
             penalty = self.MIDDLE_PENALTY if 0.3 <= pos_ratio <= 0.7 else 1.0
-            relevance = self._relevance(query, e.text)
-            max_relevance = max(max_relevance, relevance)
-            weight = penalty * relevance
+            relevance_score = self._relevance(query, e.text)
+            weight = penalty * relevance_score
             if weight > best_weight:
                 best_weight, chosen = weight, e
 
-        # 知识库里确实没有相关内容 → 拒答
-        if max_relevance < self.RELEVANCE_FLOOR or chosen is None:
-            return AnswerInfo(
-                text="提供的资料与问题不相关，无法给出可靠回答。",
-                cited_evidence=[],
-                refused=True,
-            )
+        if chosen is None:
+            return AnswerInfo(text="未检索到任何相关资料。", cited_evidence=[], refused=True)
 
         return AnswerInfo(
             text=f"根据资料：{chosen.text}（引用 [{chosen.position + 1}]）",
@@ -211,21 +227,30 @@ class Pipeline:
         strategy: ContextStrategy,
         generator: Optional[MockGenerator] = None,
         store: Optional[SnapshotStore] = None,
+        validator: Optional[ContextValidator] = None,
         limit: int = 4096,
+        top_k: int = 20,
+        max_rebuild: int = 1,
     ):
         self.retriever = retriever
         self.strategy = strategy
         self.generator = generator or MockGenerator()
         self.store = store
+        self.validator = validator
         self.limit = limit
+        self.top_k = top_k
+        # 重建次数上限：没有上限的重建就是另一种死循环
+        # （和 Agent 运行时里的 max_steps 是同一个思想）
+        self.max_rebuild = max_rebuild
 
+    # ---------------- 主流程 ----------------
     def run(self, query: str, session_id: str = "default", history=None) -> ContextSnapshot:
         history = history or []
         t0 = time.time()
 
         # ① 检索
         t_ret = time.time()
-        candidates = self.retriever.retrieve(query, top_k=20)
+        candidates = self.retriever.retrieve(query, top_k=self.top_k)
         retrieval_latency = (time.time() - t_ret) * 1000
 
         # ② 上下文组装（策略可插拔）
@@ -237,9 +262,27 @@ class Pipeline:
             limit=self.limit,
         )
 
-        # ③ 生成
+        # ②' 校验：放行 / 重建 / 拒答
+        rebuild_count = 0
+        verdict = None
+        if self.validator is not None:
+            verdict = self.validator.validate(query, build.selected, candidates)
+            while verdict.action == "rebuild" and rebuild_count < self.max_rebuild:
+                rebuild_count += 1
+                build = self._rebuild_context(query, candidates, history)
+                verdict = self.validator.validate(query, build.selected, candidates)
+            build.validator = verdict
+
+        # ③ 生成（拒答时根本不进入生成器 —— 这是职责分离的直接体现）
         t_gen = time.time()
-        answer = self.generator.generate(query, build.selected)
+        if verdict is not None and verdict.action == "refuse":
+            answer = AnswerInfo(
+                text=f"当前知识库无法可靠回答该问题：{verdict.detail}",
+                cited_evidence=[],
+                refused=True,
+            )
+        else:
+            answer = self.generator.generate(query, build.selected)
         generation_latency = (time.time() - t_gen) * 1000
 
         # ④ 引用检测：答案里标注了 [n]，映射回证据 id
@@ -263,6 +306,8 @@ class Pipeline:
                 tokens_out=tokens_out,
                 latency_ms=round(generation_latency, 2),
                 provider="mock",
+                # 重建次数写进快照：它是"组装策略是否够用"的直接证据
+                degraded=rebuild_count > 0,
             ),
             answer=AnswerInfo(
                 text=answer.text, cited_evidence=cited, refused=answer.refused
@@ -275,6 +320,89 @@ class Pipeline:
             self.store.save(snapshot)
         return snapshot
 
+    # ---------------- 重建上下文 ----------------
+    def _rebuild_context(
+        self, query: str, candidates: List[Candidate], history: List[Dict[str, str]]
+    ) -> BuildResult:
+        """放宽组装：把候选集里**所有相关性达标**的证据都纳入上下文。
+
+        为什么是"放宽组装"而不是"重新检索"（关键设计）：
+            能被重建救回来的场景，前提是证据**已经在候选集里**（只是被组装砍了）。
+            重新检索一遍纯属浪费；真正该做的是松开组装的约束。
+            而"候选集里也没有"的情形，Validator 已经直接判 refuse 了 —— 不浪费这一次重建。
+            也就是说：**rebuild 与 refuse 的分野，让重建永远不会做无用功。**
+
+        重建后仍然不达标怎么办：
+            循环会再校验一次，此时 best_candidate 与 best_selected 已经相等，
+            不会再触发 rebuild，于是落到 pass 或 refuse —— 不会无限循环。
+        """
+        q_en, q_zh = extract_features(query)
+        assert self.validator is not None  # 由调用方保证
+
+        selected: List[Evidence] = []
+        for c in candidates:
+            if relevance(q_en, q_zh, c.text) >= self.validator.min_relevance:
+                selected.append(
+                    Evidence(
+                        id=c.id,
+                        text=c.text,
+                        score=c.score,
+                        position=-1,
+                        tokens=estimate_tokens(c.text),
+                        source=c.source,
+                    )
+                )
+
+        # 借用策略自身的排序能力（首尾优先等），避免重建后丢掉排序优化
+        if hasattr(self.strategy, "_head_tail_order"):
+            selected = self.strategy._head_tail_order(selected)  # type: ignore[attr-defined]
+        else:
+            selected = [
+                it.model_copy(update={"position": i}) for i, it in enumerate(selected)
+            ]
+
+        selected_ids = {e.id for e in selected}
+        dropped = [
+            Dropped(id=c.id, score=c.score, reason=DropReason.LOW_SCORE)
+            for c in candidates
+            if c.id not in selected_ids
+        ]
+
+        system_prompt = self.SYSTEM_PROMPT
+        system_tokens = estimate_tokens(system_prompt)
+        history_tokens = sum(estimate_tokens(m.get("content", "")) for m in history)
+        evidence_tokens = sum(e.tokens for e in selected)
+        budget = Budget(
+            system=system_tokens,
+            history=history_tokens,
+            evidence=evidence_tokens,
+            used=system_tokens + history_tokens + evidence_tokens,
+            limit=self.limit,
+        )
+
+        messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        messages.extend(history)
+        messages.append(
+            {
+                "role": "user",
+                "content": (
+                    "请仅根据下面提供的资料回答问题，并在答案中标注引用的编号（如 [1]）。"
+                    "如果资料不足以回答，请明确说明不足。\n\n"
+                    f"资料：\n{render_evidence(selected)}"
+                ),
+            }
+        )
+
+        return BuildResult(
+            # 版本号带 +rebuild 后缀：评测时能一眼看出这条快照走过重建路径
+            strategy_version=f"{self.strategy.version}+rebuild",
+            messages=messages,
+            selected=selected,
+            dropped=dropped,
+            budget=budget,
+        )
+
+    # ---------------- 引用检测 ----------------
     @staticmethod
     def _detect_citations(text: str, evidence, hinted: List[str]) -> List[str]:
         """引用检测：把答案里的 [1] [2] 映射回证据 id。

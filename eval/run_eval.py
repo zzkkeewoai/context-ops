@@ -24,6 +24,7 @@ if hasattr(sys.stdout, "reconfigure"):
 import attribution as attr_mod  # noqa: E402
 import metrics as metric_mod  # noqa: E402
 from context_builder import get_strategy  # noqa: E402
+from context_validator import ContextValidator  # noqa: E402
 from pipeline import InMemoryRetriever, Pipeline, SnapshotStore  # noqa: E402
 
 DATA_DIR = os.path.join(ROOT, "data")
@@ -35,14 +36,16 @@ def load_jsonl(path: str):
         return [json.loads(line) for line in f if line.strip()]
 
 
-def run_strategy(strategy_name: str, kb, cases) -> tuple:
+def run_strategy(strategy_name: str, kb, cases, with_validator: bool = False) -> tuple:
     """用指定策略跑完整套用例，返回 (快照列表, 归因列表)"""
-    store = SnapshotStore(os.path.join(SNAPSHOT_DIR, f"{strategy_name}.jsonl"))
+    tag = strategy_name + ("+validator" if with_validator else "")
+    store = SnapshotStore(os.path.join(SNAPSHOT_DIR, f"{tag.replace('+', '_')}.jsonl"))
     store.clear()
     pipeline = Pipeline(
         retriever=InMemoryRetriever(kb),
         strategy=get_strategy(strategy_name),
         store=store,
+        validator=ContextValidator() if with_validator else None,
     )
     snapshots = [pipeline.run(c["query"]) for c in cases]
     attributions = [attr_mod.attribute(s, c) for s, c in zip(snapshots, cases)]
@@ -58,7 +61,8 @@ def print_metrics_table(results: dict):
         ("key_evidence_selected", "关键证据入选率"),
         ("avg_context_utilization", "上下文利用率 ★"),
         ("accuracy", "准确率"),
-        ("refusal_rate", "拒答率"),
+        ("over_refusal_rate", "过拒率 ↓"),
+        ("missed_refusal_rate", "漏拒率 ↓"),
         ("avg_tokens_in", "平均输入 token"),
         ("p95_latency_ms", "P95 延迟(ms)"),
     ]
@@ -117,9 +121,13 @@ def main():
     print("=" * 78)
 
     results = {}
-    for name in ("naive", "headtail"):
-        snapshots, attrs = run_strategy(name, kb, cases)
-        results[name] = {
+    # 三组对比：baseline / 上下文优化 / 上下文优化 + 校验器
+    # 分开跑的目的是把"组装策略的收益"和"校验器的收益"拆开归因
+    configs = [("naive", False), ("headtail", False), ("headtail", True)]
+    for name, with_validator in configs:
+        tag = name + ("+validator" if with_validator else "")
+        snapshots, attrs = run_strategy(name, kb, cases, with_validator)
+        results[tag] = {
             "metrics": metric_mod.summarize(snapshots, cases),
             "attributions": attrs,
             "attribution_dist": attr_mod.summarize_attributions(attrs),

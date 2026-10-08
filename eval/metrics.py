@@ -96,6 +96,13 @@ def summarize(snapshots: List[ContextSnapshot], cases: List[Dict]) -> Dict:
     tokens_in_total = 0
     refusals = 0
 
+    # 拒答相关的两个错误率：分母分别是"该答的条数"和"该拒的条数"，
+    # 而不是总条数 —— 两者基数不同、代价反向，合成一个率就失去意义了。
+    should_answer = 0    # gold 非空 = 本应回答
+    should_refuse = 0    # gold 为空 = 本应拒答（库外 / 证据冲突）
+    over_refusal = 0     # 该答却拒了
+    missed_refusal = 0   # 该拒却答了
+
     for snap, case in zip(snapshots, cases):
         gold = case.get("gold_evidence", [])
         hits += 1 if retrieval_hit(snap, gold) else 0
@@ -106,6 +113,13 @@ def summarize(snapshots: List[ContextSnapshot], cases: List[Dict]) -> Dict:
         tokens_in_total += snap.generation.tokens_in
         refusals += 1 if snap.answer.refused else 0
 
+        if gold:
+            should_answer += 1
+            over_refusal += 1 if snap.answer.refused else 0
+        else:
+            should_refuse += 1
+            missed_refusal += 1 if not snap.answer.refused else 0
+
     return {
         # 检索层
         "retrieval_recall": round(hits / n, 3),
@@ -115,6 +129,9 @@ def summarize(snapshots: List[ContextSnapshot], cases: List[Dict]) -> Dict:
         # 生成层
         "accuracy": round(corrects / n, 3),
         "refusal_rate": round(refusals / n, 3),
+        # 生成层 · 拒答质量（方向相反的两类错误，必须分开看）
+        "over_refusal_rate": round(over_refusal / should_answer, 3) if should_answer else 0.0,
+        "missed_refusal_rate": round(missed_refusal / should_refuse, 3) if should_refuse else 0.0,
         # 系统层
         "p95_latency_ms": percentile(latencies, 0.95),
         "avg_total_latency_ms": round(statistics.mean(latencies), 2),

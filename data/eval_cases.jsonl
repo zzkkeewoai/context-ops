@@ -12,3 +12,4 @@
 {"case_id": "c12", "category": "single", "query": "Neo4j 的两跳查询有什么用？", "gold_evidence": ["doc_14"]}
 {"case_id": "c13", "category": "out_of_kb", "query": "今天天气怎么样？", "gold_evidence": []}
 {"case_id": "c14", "category": "out_of_kb", "query": "公司年会在哪里举办？", "gold_evidence": []}
+{"case_id": "c15", "category": "conflict", "query": "Milvus 部署依赖 MinIO 吗？", "gold_evidence": []}
