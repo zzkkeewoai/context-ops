@@ -1,0 +1,23 @@
+{"id": "doc_01", "text": "FastAPI 是一个现代、高性能的 Python Web 框架，基于 Starlette 与 Pydantic，原生支持异步（async/await）。"}
+{"id": "doc_02", "text": "Milvus 是开源向量数据库，支持 IVF_FLAT 与 HNSW 索引，常用于语义检索与 RAG 场景。"}
+{"id": "doc_03", "text": "Neo4j 是图数据库，使用 Cypher 查询语言，适合存储实体关系并执行多跳遍历。"}
+{"id": "doc_04", "text": "RRF（Reciprocal Rank Fusion）按排名融合多路检索结果，公式为 1/(k+rank)，k 通常取 60。"}
+{"id": "doc_05", "text": "Redis 是内存键值数据库，常用于缓存与会话存储，支持 TTL 过期和多种数据结构。"}
+{"id": "doc_06", "text": "FastAPI 会自动生成 OpenAPI/Swagger 接口文档，便于前后端联调与演示。"}
+{"id": "doc_07", "text": "语义缓存通过 embedding 余弦相似度判断两个问题是否语义等价，命中后可直接跳过检索与生成。"}
+{"id": "doc_08", "text": "Prometheus 是时序监控系统，通过拉取 /metrics 端点采集指标，常与 Grafana 配合做可视化。"}
+{"id": "doc_09", "text": "SSE（Server-Sent Events）是基于 HTTP 的服务器单向推送通道，常用于大模型流式输出。"}
+{"id": "doc_10", "text": "LangGraph 用状态机（StateGraph）编排多 Agent 流程，通过条件边强约束路由轨迹，避免死循环。"}
+{"id": "doc_11", "text": "向量检索把文本编码成稠密向量并用余弦相似度找语义相近内容，但它无法表达实体之间的结构关系。"}
+{"id": "doc_12", "text": "上下文工程关注给模型喂什么内容，包括证据选择、排序、token 预算分配与压缩策略。"}
+{"id": "doc_13", "text": "RAG 系统把外部知识检索结果作为上下文交给大模型，从而缓解知识过期与幻觉问题。"}
+{"id": "doc_14", "text": "Neo4j 图数据库支持两跳邻居查询，可用于回答依赖链与跨实体对比类问题。"}
+{"id": "doc_15", "text": "FastAPI 支持依赖注入与中间件，便于统一处理鉴权、限流与请求追踪。"}
+{"id": "doc_16", "text": "Milvus 的部署依赖 etcd 与 MinIO 组件。"}
+{"id": "doc_17", "text": "Milvus 集群需要配置对象存储。"}
+{"id": "doc_18", "text": "Milvus 常见问题排查手册。"}
+{"id": "doc_19", "text": "RRF 融合中的 k 值会影响长尾结果的权重分配。"}
+{"id": "doc_20", "text": "SSE 长连接需要服务端定期发送心跳包。"}
+{"id": "doc_21", "text": "上下文压缩会丢失细节，需保留来源引用。"}
+{"id": "doc_22", "text": "Neo4j 的索引会影响多跳查询性能。"}
+{"id": "doc_23", "text": "FastAPI 的中间件执行顺序与注册顺序相反。"}

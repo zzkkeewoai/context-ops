@@ -1,0 +1,14 @@
+{"case_id": "c01", "category": "single", "query": "Milvus 是什么？", "gold_evidence": ["doc_02"]}
+{"case_id": "c02", "category": "single", "query": "RRF 的公式是什么？", "gold_evidence": ["doc_04"]}
+{"case_id": "c03", "category": "multi", "query": "FastAPI 有什么特点？", "gold_evidence": ["doc_01", "doc_06", "doc_15"]}
+{"case_id": "c04", "category": "single", "query": "Neo4j 使用什么查询语言？", "gold_evidence": ["doc_03"]}
+{"case_id": "c05", "category": "single", "query": "语义缓存如何判断两个问题等价？", "gold_evidence": ["doc_07"]}
+{"case_id": "c06", "category": "single", "query": "Prometheus 如何采集指标？", "gold_evidence": ["doc_08"]}
+{"case_id": "c07", "category": "single", "query": "SSE 是什么？", "gold_evidence": ["doc_09"]}
+{"case_id": "c08", "category": "single", "query": "LangGraph 如何避免死循环？", "gold_evidence": ["doc_10"]}
+{"case_id": "c09", "category": "single", "query": "向量检索有什么局限？", "gold_evidence": ["doc_11"]}
+{"case_id": "c10", "category": "single", "query": "上下文工程包含哪些内容？", "gold_evidence": ["doc_12"]}
+{"case_id": "c11", "category": "single", "query": "RAG 如何缓解幻觉？", "gold_evidence": ["doc_13"]}
+{"case_id": "c12", "category": "single", "query": "Neo4j 的两跳查询有什么用？", "gold_evidence": ["doc_14"]}
+{"case_id": "c13", "category": "out_of_kb", "query": "今天天气怎么样？", "gold_evidence": []}
+{"case_id": "c14", "category": "out_of_kb", "query": "公司年会在哪里举办？", "gold_evidence": []}
